@@ -16,6 +16,8 @@
       <li><a href="about.html">About</a></li>
       <li><a href="lab-results.html">Lab Results</a></li>
       <li><a href="contact.html">Contact</a></li>
+      <li><a href="cart.html">Cart <span id="cart-count" class="cart-badge"></span></a></li>
+      <li><a href="login.html" id="nav-account">Login</a></li>
     </ul>
   </nav>
 </header>
@@ -62,68 +64,8 @@
       <p>Each listing links to its own Certificate of Analysis. Replace this catalog with your live product data and pricing.</p>
     </div>
 
-    <div class="grid-products">
-
-      <div class="card">
-        <div class="code mono">PV-BPC157</div>
-        <h3>BPC-157</h3>
-        <div class="desc">Body protection compound, 5mg vial, lyophilized powder.</div>
-        <div class="metrics">
-          <div class="purity">99.4%<span>Purity</span></div>
-          <a href="lab-results.html" class="coa-link">View COA →</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="code mono">PV-TB500</div>
-        <h3>TB-500</h3>
-        <div class="desc">Thymosin Beta-4 fragment, 5mg vial, lyophilized powder.</div>
-        <div class="metrics">
-          <div class="purity">99.1%<span>Purity</span></div>
-          <a href="lab-results.html" class="coa-link">View COA →</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="code mono">PV-IPAM</div>
-        <h3>Ipamorelin</h3>
-        <div class="desc">Growth hormone secretagogue, 5mg vial, lyophilized powder.</div>
-        <div class="metrics">
-          <div class="purity">99.6%<span>Purity</span></div>
-          <a href="lab-results.html" class="coa-link">View COA →</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="code mono">PV-GHKCU</div>
-        <h3>GHK-Cu</h3>
-        <div class="desc">Copper peptide complex, 50mg vial, lyophilized powder.</div>
-        <div class="metrics">
-          <div class="purity">98.9%<span>Purity</span></div>
-          <a href="lab-results.html" class="coa-link">View COA →</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="code mono">PV-NAD</div>
-        <h3>NAD+</h3>
-        <div class="desc">Nicotinamide adenine dinucleotide, 500mg vial.</div>
-        <div class="metrics">
-          <div class="purity">99.0%<span>Purity</span></div>
-          <a href="lab-results.html" class="coa-link">View COA →</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="code mono">PV-SEMA</div>
-        <h3>Semaglutide</h3>
-        <div class="desc">GLP-1 receptor agonist, 5mg vial, lyophilized powder.</div>
-        <div class="metrics">
-          <div class="purity">99.3%<span>Purity</span></div>
-          <a href="lab-results.html" class="coa-link">View COA →</a>
-        </div>
-      </div>
-
+    <div class="grid-products" id="products-grid">
+      <p style="color:var(--ink-soft);">Loading products…</p>
     </div>
   </div>
 </section>
@@ -167,5 +109,10 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/products.js"></script>
 </body>
 </html>

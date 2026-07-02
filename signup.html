@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — PureVial</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site">
+  <nav class="nav">
+    <div class="brand"><span class="brand-mark"></span> PureVial</div>
+    <ul class="navlinks">
+      <li><a href="index.html">Products</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="lab-results.html">Lab Results</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="cart.html">Cart <span id="cart-count" class="cart-badge"></span></a></li>
+      <li><a href="login.html" id="nav-account">Login</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="hero" style="padding-bottom:56px;">
+  <div class="wrap" style="max-width:440px;">
+    <div class="eyebrow">Create an account</div>
+    <h1 style="font-size:2.1rem;">Sign up for PureVial</h1>
+
+    <form id="signup-form" class="contact-form" style="margin-top:24px;">
+      <div class="field">
+        <label for="full_name">Full name</label>
+        <input type="text" id="full_name" required>
+      </div>
+      <div class="field">
+        <label for="email">Email address</label>
+        <input type="email" id="email" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" minlength="6" required>
+      </div>
+      <div id="signup-error" style="color:#B3261E; font-size:.85rem; display:none;"></div>
+      <div id="signup-success" style="color:var(--verified); font-size:.85rem; display:none;"></div>
+      <button type="submit" class="btn btn-primary" style="justify-self:start;">Create account</button>
+    </form>
+
+    <p style="margin-top:20px; font-size:.9rem; color:var(--ink-soft);">
+      Already have an account? <a href="login.html">Log in</a>
+    </p>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/cart.js"></script>
+<script>
+document.getElementById('signup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fullName = document.getElementById('full_name').value;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const errorBox = document.getElementById('signup-error');
+  const successBox = document.getElementById('signup-success');
+
+  const { error } = await purevialSignUp(email, password, fullName);
+  if (error) {
+    errorBox.textContent = error.message;
+    errorBox.style.display = 'block';
+    successBox.style.display = 'none';
+    return;
+  }
+  errorBox.style.display = 'none';
+  successBox.textContent = 'Account created! Check your email to confirm, then log in.';
+  successBox.style.display = 'block';
+  document.getElementById('signup-form').reset();
+});
+</script>
+
+</body>
+</html>

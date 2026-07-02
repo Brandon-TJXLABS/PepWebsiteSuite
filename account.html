@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Account — PureVial</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site">
+  <nav class="nav">
+    <div class="brand"><span class="brand-mark"></span> PureVial</div>
+    <ul class="navlinks">
+      <li><a href="index.html">Products</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="lab-results.html">Lab Results</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="cart.html">Cart <span id="cart-count" class="cart-badge"></span></a></li>
+      <li><a href="account.html" class="active" id="nav-account">Account</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="hero" style="padding-bottom:40px;">
+  <div class="wrap">
+    <div class="eyebrow">Your account</div>
+    <h1 id="account-heading">Account</h1>
+    <button class="btn btn-outline" id="logout-btn" style="margin-top:12px;">Log out</button>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-head"><div class="eyebrow">Order history</div></div>
+    <div id="orders-container">
+      <p style="color:var(--ink-soft);">Loading orders…</p>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/cart.js"></script>
+<script>
+document.getElementById('logout-btn').addEventListener('click', purevialSignOut);
+
+async function loadAccount() {
+  const user = await purevialRequireAuth();
+  if (!user) return;
+
+  document.getElementById('account-heading').textContent =
+    (user.user_metadata && user.user_metadata.full_name) ? user.user_metadata.full_name : user.email;
+
+  const { data: orders, error } = await supabaseClient
+    .from('orders')
+    .select('id, status, payment_method, total_cents, created_at, order_items ( product_name, quantity, price_cents )')
+    .order('created_at', { ascending: false });
+
+  const container = document.getElementById('orders-container');
+
+  if (error) {
+    container.innerHTML = '<p style="color:var(--ink-soft);">Could not load orders.</p>';
+    return;
+  }
+
+  if (orders.length === 0) {
+    container.innerHTML = '<p style="color:var(--ink-soft);">No orders yet. <a href="index.html">Browse products</a>.</p>';
+    return;
+  }
+
+  container.innerHTML = orders.map(order => `
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div class="code mono">Order #${order.id.slice(0, 8)}</div>
+        <span class="pass" style="color:${order.status === 'paid' ? 'var(--verified)' : 'var(--blue-mid)'};">${order.status.replace('_', ' ').toUpperCase()}</span>
+      </div>
+      ${order.order_items.map(item => `
+        <div class="coa-row">
+          <span class="label">${item.product_name} × ${item.quantity}</span>
+          <span class="value">$${((item.price_cents * item.quantity) / 100).toFixed(2)}</span>
+        </div>
+      `).join('')}
+      <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${(order.total_cents / 100).toFixed(2)}</span></div>
+      <div style="font-size:.8rem; color:var(--ink-soft); margin-top:8px;">
+        Paid via ${order.payment_method.replace('_', ' ')} · ${new Date(order.created_at).toLocaleDateString()}
+      </div>
+    </div>
+  `).join('');
+}
+
+loadAccount();
+</script>
+
+</body>
+</html>

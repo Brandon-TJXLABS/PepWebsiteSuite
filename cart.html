@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Cart — PureVial</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site">
+  <nav class="nav">
+    <div class="brand"><span class="brand-mark"></span> PureVial</div>
+    <ul class="navlinks">
+      <li><a href="index.html">Products</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="lab-results.html">Lab Results</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="cart.html" class="active">Cart <span id="cart-count" class="cart-badge"></span></a></li>
+      <li><a href="login.html" id="nav-account">Login</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="hero" style="padding-bottom:40px;">
+  <div class="wrap">
+    <div class="eyebrow">Your order</div>
+    <h1>Cart</h1>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+    <div id="cart-container">
+      <p style="color:var(--ink-soft);">Loading cart…</p>
+    </div>
+    <div class="cart-summary" id="cart-summary" style="display:none;">
+      <span>Total</span>
+      <strong id="cart-total">$0.00</strong>
+    </div>
+    <div style="text-align:right; margin-top:12px;">
+      <a href="checkout.html" class="btn btn-primary" id="checkout-btn" style="display:none;">Proceed to checkout</a>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/cart.js"></script>
+<script>
+async function renderCart() {
+  const user = await purevialRequireAuth();
+  if (!user) return;
+
+  const container = document.getElementById('cart-container');
+  const cart = await purevialGetCart();
+
+  if (cart.length === 0) {
+    container.innerHTML = '<p style="color:var(--ink-soft);">Your cart is empty. <a href="index.html">Browse products</a>.</p>';
+    return;
+  }
+
+  let total = 0;
+  container.innerHTML = cart.map(item => {
+    const product = item.products;
+    const lineTotal = product.price_cents * item.quantity;
+    total += lineTotal;
+    return `
+      <div class="cart-row">
+        <div>
+          <strong>${product.name}</strong>
+          <div class="code mono" style="color:var(--ink-soft);">${product.sku}</div>
+        </div>
+        <div class="mono">$${(product.price_cents / 100).toFixed(2)} ea</div>
+        <div class="qty-controls">
+          <button onclick="changeQty('${item.id}', ${item.quantity - 1})">−</button>
+          <span class="mono">${item.quantity}</span>
+          <button onclick="changeQty('${item.id}', ${item.quantity + 1})">+</button>
+        </div>
+        <div>
+          <a href="#" onclick="removeItem('${item.id}'); return false;" style="font-size:.85rem;">Remove</a>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('cart-summary').style.display = 'flex';
+  document.getElementById('cart-total').textContent = '$' + (total / 100).toFixed(2);
+  document.getElementById('checkout-btn').style.display = 'inline-flex';
+}
+
+async function changeQty(cartItemId, newQty) {
+  await purevialUpdateCartQuantity(cartItemId, newQty);
+  renderCart();
+  purevialUpdateCartCount();
+}
+
+async function removeItem(cartItemId) {
+  await purevialRemoveFromCart(cartItemId);
+  renderCart();
+  purevialUpdateCartCount();
+}
+
+renderCart();
+</script>
+
+</body>
+</html>
