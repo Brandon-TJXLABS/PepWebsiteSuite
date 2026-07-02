@@ -308,6 +308,21 @@ footer a:hover{color:var(--blue-deep);}
   border-radius:3px; margin-top:8px; word-break:break-all; font-size:.85rem;
 }
 
+/* ---------- Out of stock ---------- */
+.stock-badge{
+  position:absolute; top:12px; right:12px;
+  background:#B3261E; color:#fff;
+  font-family:'IBM Plex Mono', monospace; font-size:.68rem; font-weight:600;
+  letter-spacing:.04em; text-transform:uppercase;
+  padding:4px 9px; border-radius:2px;
+}
+.card{position:relative;}
+.card .btn:disabled{opacity:.55; cursor:not-allowed;}
+.restock-note{
+  font-size:.78rem; color:var(--ink-soft); text-align:center; margin-top:8px;
+  font-family:'IBM Plex Mono', monospace;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width:860px){
   .hero-grid{grid-template-columns:1fr;}
