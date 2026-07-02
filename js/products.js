@@ -22,6 +22,7 @@ async function purevialLoadProducts() {
 
   grid.innerHTML = products.map(p => `
     <div class="card">
+      ${!p.in_stock ? `<div class="stock-badge">Out of stock</div>` : ''}
       <div class="code mono">${p.sku}</div>
       <h3>${p.name}</h3>
       <div class="desc">${p.description || ''}</div>
@@ -29,9 +30,18 @@ async function purevialLoadProducts() {
         <div class="purity">${p.purity || '—'}<span>Purity</span></div>
         <div class="purity">${formatPrice(p.price_cents)}<span>Price</span></div>
       </div>
-      <button class="btn btn-primary" style="width:100%; margin-top:14px; justify-content:center;" onclick="purevialAddToCart('${p.id}')">Add to cart</button>
+      ${p.in_stock
+        ? `<button class="btn btn-primary" style="width:100%; margin-top:14px; justify-content:center;" onclick="purevialAddToCart('${p.id}')">Add to cart</button>`
+        : `<button class="btn btn-outline" style="width:100%; margin-top:14px; justify-content:center;" disabled>Out of stock</button>
+           ${p.restock_date ? `<div class="restock-note">Back in stock ${formatRestockDate(p.restock_date)}</div>` : ''}`
+      }
     </div>
   `).join('');
+}
+
+function formatRestockDate(dateStr) {
+  const date = new Date(dateStr + 'T00:00:00');
+  return date.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 document.addEventListener('DOMContentLoaded', purevialLoadProducts);
