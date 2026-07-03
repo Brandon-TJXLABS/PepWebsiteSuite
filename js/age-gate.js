@@ -19,7 +19,11 @@
       '</label>' +
       '<label class="age-gate-check">' +
         '<input type="checkbox" id="gate-research">' +
-        '<span>I understand these products are sold for laboratory research purposes only and are not intended for human or animal consumption</span>' +
+        '<span>I confirm I will only use these products for laboratory research purposes, and not for human or animal consumption</span>' +
+      '</label>' +
+      '<label class="age-gate-check">' +
+        '<input type="checkbox" id="gate-terms">' +
+        '<span>I have read and agree to PureVial\'s <a href="terms.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">Privacy Policy</a>, and accept all associated liability</span>' +
       '</label>' +
       '<div class="age-gate-actions">' +
         '<button id="gate-enter" class="btn btn-primary" disabled>Enter Site</button>' +
@@ -32,13 +36,15 @@
 
   var ageBox = document.getElementById('gate-age');
   var researchBox = document.getElementById('gate-research');
+  var termsBox = document.getElementById('gate-terms');
   var enterBtn = document.getElementById('gate-enter');
 
   function updateButton() {
-    enterBtn.disabled = !(ageBox.checked && researchBox.checked);
+    enterBtn.disabled = !(ageBox.checked && researchBox.checked && termsBox.checked);
   }
   ageBox.addEventListener('change', updateButton);
   researchBox.addEventListener('change', updateButton);
+  termsBox.addEventListener('change', updateButton);
 
   enterBtn.addEventListener('click', function () {
     sessionStorage.setItem('purevial_gate_accepted', 'true');
