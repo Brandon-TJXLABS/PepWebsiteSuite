@@ -62,7 +62,8 @@ async function purevialLoadProducts() {
       ${outOfStock ? `<div class="stock-badge">Out of stock</div>` : ''}
       ${lowStock ? `<div class="stock-badge low">Only ${qty} left</div>` : ''}
       <div class="card-image">
-        <img src="${p.image_url || PLACEHOLDER_IMAGE_SVG}" alt="${p.name}" loading="lazy">
+        <img class="card-image-bg" src="${p.image_url || PLACEHOLDER_IMAGE_SVG}" alt="" aria-hidden="true" loading="lazy">
+        <img class="card-image-fg" src="${p.image_url || PLACEHOLDER_IMAGE_SVG}" alt="${p.name}" loading="lazy">
       </div>
       <div class="code mono">${p.sku}</div>
       <h3>${p.name}</h3>
@@ -92,7 +93,8 @@ function purevialOpenModal(productId) {
 
   body.innerHTML = `
     <div class="modal-image">
-      <img src="${p.image_url || PLACEHOLDER_IMAGE_SVG}" alt="${p.name}">
+      <img class="modal-image-bg" src="${p.image_url || PLACEHOLDER_IMAGE_SVG}" alt="" aria-hidden="true">
+      <img class="modal-image-fg" src="${p.image_url || PLACEHOLDER_IMAGE_SVG}" alt="${p.name}">
     </div>
     <div class="modal-details">
       ${outOfStock ? `<div class="stock-badge" style="position:static; display:inline-block; margin-bottom:10px;">Out of stock</div>` : ''}
