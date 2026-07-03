@@ -220,18 +220,10 @@ async function createOrderItemsAndDecrementStock(orderId) {
     price_cents: item.products.price_cents
   }));
 
+  // Stock automatically decrements via a database trigger the moment these
+  // rows are inserted -- no direct RPC call needed (and no longer possible;
+  // that path was closed for security reasons).
   await supabaseClient.from('order_items').insert(orderItems);
-
-  // Reduce stock for each item purchased. Uses a database function so two
-  // customers buying the last unit at once can't both succeed.
-  await Promise.all(
-    currentCart.map(item =>
-      supabaseClient.rpc('decrement_stock', {
-        p_product_id: item.products.id,
-        p_quantity: item.quantity
-      })
-    )
-  );
 }
 
 document.querySelectorAll('.payment-option').forEach(option => {
