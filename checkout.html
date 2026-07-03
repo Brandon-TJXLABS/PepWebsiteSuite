@@ -89,7 +89,8 @@
 
     <div id="order-confirmation" style="display:none;">
       <div class="disclaimer" style="background:#E8F5EC; border-color:#BFE3CB;">
-        <strong>Order placed.</strong> Follow the payment instructions above to complete your order. We'll update your order status once payment is received — check <a href="account.html">your account</a> for updates.
+        <strong>Order placed — reference #<span id="confirmed-order-number"></span></strong><br>
+        Use this order number as your payment reference. Follow the payment instructions above to complete your order — we'll update your order status once payment is received, check <a href="account.html">your account</a> for updates.
       </div>
     </div>
 
@@ -202,6 +203,7 @@ document.getElementById('place-order-btn').addEventListener('click', async () =>
 
   await purevialClearCart();
 
+  document.getElementById('confirmed-order-number').textContent = order.id.slice(0, 8);
   document.getElementById('payment-section').style.display = 'none';
   document.getElementById('order-confirmation').style.display = 'block';
   purevialUpdateCartCount();
