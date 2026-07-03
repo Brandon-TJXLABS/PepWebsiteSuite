@@ -10,7 +10,7 @@
 
 <header class="site">
   <nav class="nav">
-    <div class="brand"><span class="brand-mark"></span> PureVial</div>
+    <a href="index.html" class="brand"><span class="brand-mark"></span> PureVial</a>
     <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
       <li><a href="index.html">Products</a></li>
@@ -33,8 +33,24 @@
 <section style="padding-top:0;">
   <div class="wrap" style="max-width:640px;">
 
+    <div id="address-block" style="display:none; margin-bottom:28px;">
+      <div class="section-head" style="margin-bottom:8px;"><div class="eyebrow">Shipping to</div></div>
+      <div class="address-view-card" id="address-summary"></div>
+    </div>
+
+    <div id="address-missing" class="disclaimer" style="display:none; margin-bottom:28px;">
+      You don't have a shipping address saved yet. <a href="account.html">Add one in your account</a> before checking out.
+    </div>
+
     <div id="order-summary">
       <p style="color:var(--ink-soft);">Loading order…</p>
+    </div>
+
+    <div id="quote-section" style="display:none;">
+      <div class="disclaimer" style="margin-bottom:20px;">
+        <strong>Shipping quote required.</strong> Orders of 60 or more vials need a manual shipping quote before payment. Place your order now and we'll follow up with a shipping cost and payment instructions using the contact details on your account.
+      </div>
+      <button class="btn btn-primary" id="request-quote-btn">Request shipping quote</button>
     </div>
 
     <div id="payment-section" style="display:none;">
@@ -90,28 +106,58 @@
     <div id="order-confirmation" style="display:none;">
       <div class="disclaimer" style="background:#E8F5EC; border-color:#BFE3CB;">
         <strong>Order placed — reference #<span id="confirmed-order-number"></span></strong><br>
-        Use this order number as your payment reference. Follow the payment instructions above to complete your order — we'll update your order status once payment is received, check <a href="account.html">your account</a> for updates.
+        <span id="confirmation-detail">Use this order number as your payment reference. Follow the payment instructions above to complete your order — we'll update your order status once payment is received, check <a href="account.html">your account</a> for updates.</span>
       </div>
     </div>
 
   </div>
 </section>
 
+<script src="js/age-gate.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
+<script src="js/shipping.js"></script>
 <script>
 let currentCart = [];
-let currentTotal = 0;
+let currentSubtotal = 0;
+let currentVials = 0;
+let currentShipping = { cents: 0, requiresQuote: false, label: '' };
+let currentProfile = null;
 
 async function loadOrderSummary() {
   const user = await purevialRequireAuth();
   if (!user) return;
 
   if (typeof purevialTrack === 'function') purevialTrack('checkout_start');
+
+  // Load saved shipping address first — checkout can't proceed without one
+  const { data: profile } = await supabaseClient
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  currentProfile = profile;
+
+  if (!profile || !profile.address_line1) {
+    document.getElementById('address-missing').style.display = 'block';
+    document.getElementById('order-summary').innerHTML = '';
+    return;
+  }
+
+  document.getElementById('address-block').style.display = 'block';
+  document.getElementById('address-summary').innerHTML = `
+    ${profile.full_name || ''}<br>
+    ${profile.address_line1}${profile.address_line2 ? ', ' + profile.address_line2 : ''}<br>
+    ${profile.city || ''} ${profile.state || ''} ${profile.postcode || ''}<br>
+    ${profile.country || ''}<br>
+    ${profile.phone ? 'Phone: ' + profile.phone : ''}
+    <div style="margin-top:8px;"><a href="account.html" style="font-size:.82rem;">Change shipping address</a></div>
+  `;
 
   currentCart = await purevialGetCart();
   const summaryEl = document.getElementById('order-summary');
@@ -121,20 +167,71 @@ async function loadOrderSummary() {
     return;
   }
 
-  currentTotal = currentCart.reduce((sum, item) => sum + item.products.price_cents * item.quantity, 0);
+  currentSubtotal = currentCart.reduce((sum, item) => sum + item.products.price_cents * item.quantity, 0);
+  currentVials = currentCart.reduce((sum, item) => sum + item.quantity, 0);
+  currentShipping = purevialCalculateShipping(currentVials, currentSubtotal);
+
+  const shippingLine = currentShipping.requiresQuote
+    ? `<div class="coa-row"><span class="label">Shipping</span><span class="value">Quote required</span></div>`
+    : `<div class="coa-row"><span class="label">Shipping</span><span class="value">${currentShipping.label}</span></div>`;
+
+  const totalLine = currentShipping.requiresQuote
+    ? `<div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${(currentSubtotal / 100).toFixed(2)} USD + shipping</span></div>`
+    : `<div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${((currentSubtotal + currentShipping.cents) / 100).toFixed(2)} USD</span></div>`;
 
   summaryEl.innerHTML = `
     <div class="section-head" style="margin-bottom:8px;"><div class="eyebrow">Order summary</div></div>
     ${currentCart.map(item => `
       <div class="coa-row">
         <span class="label">${item.products.name} × ${item.quantity}</span>
-        <span class="value">$${((item.products.price_cents * item.quantity) / 100).toFixed(2)}</span>
+        <span class="value">$${((item.products.price_cents * item.quantity) / 100).toFixed(2)} USD</span>
       </div>
     `).join('')}
-    <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${(currentTotal / 100).toFixed(2)}</span></div>
+    <div class="coa-row"><span class="label">Subtotal</span><span class="value">$${(currentSubtotal / 100).toFixed(2)} USD</span></div>
+    ${shippingLine}
+    ${totalLine}
   `;
 
-  document.getElementById('payment-section').style.display = 'block';
+  if (currentShipping.requiresQuote) {
+    document.getElementById('quote-section').style.display = 'block';
+  } else {
+    document.getElementById('payment-section').style.display = 'block';
+  }
+}
+
+function buildShippingSnapshot() {
+  return {
+    shipping_address_line1: currentProfile.address_line1 || null,
+    shipping_address_line2: currentProfile.address_line2 || null,
+    shipping_city: currentProfile.city || null,
+    shipping_state: currentProfile.state || null,
+    shipping_postcode: currentProfile.postcode || null,
+    shipping_country: currentProfile.country || null,
+    shipping_phone: currentProfile.phone || null
+  };
+}
+
+async function createOrderItemsAndDecrementStock(orderId) {
+  const orderItems = currentCart.map(item => ({
+    order_id: orderId,
+    product_id: item.products.id,
+    product_name: item.products.name,
+    quantity: item.quantity,
+    price_cents: item.products.price_cents
+  }));
+
+  await supabaseClient.from('order_items').insert(orderItems);
+
+  // Reduce stock for each item purchased. Uses a database function so two
+  // customers buying the last unit at once can't both succeed.
+  await Promise.all(
+    currentCart.map(item =>
+      supabaseClient.rpc('decrement_stock', {
+        p_product_id: item.products.id,
+        p_quantity: item.quantity
+      })
+    )
+  );
 }
 
 document.querySelectorAll('.payment-option').forEach(option => {
@@ -164,7 +261,9 @@ document.getElementById('place-order-btn').addEventListener('click', async () =>
       user_id: user.id,
       status: 'pending_payment',
       payment_method: selected.value,
-      total_cents: currentTotal
+      total_cents: currentSubtotal,
+      shipping_cents: currentShipping.cents,
+      ...buildShippingSnapshot()
     })
     .select()
     .single();
@@ -176,35 +275,58 @@ document.getElementById('place-order-btn').addEventListener('click', async () =>
     return;
   }
 
-  const orderItems = currentCart.map(item => ({
-    order_id: order.id,
-    product_id: item.products.id,
-    product_name: item.products.name,
-    quantity: item.quantity,
-    price_cents: item.products.price_cents
-  }));
-
-  await supabaseClient.from('order_items').insert(orderItems);
-
-  // Reduce stock for each item purchased. Uses a database function so two
-  // customers buying the last unit at once can't both succeed.
-  await Promise.all(
-    currentCart.map(item =>
-      supabaseClient.rpc('decrement_stock', {
-        p_product_id: item.products.id,
-        p_quantity: item.quantity
-      })
-    )
-  );
+  await createOrderItemsAndDecrementStock(order.id);
 
   if (typeof purevialTrack === 'function') {
-    purevialTrack('order_placed', { metadata: { total_cents: currentTotal, payment_method: selected.value } });
+    purevialTrack('order_placed', { metadata: { total_cents: currentSubtotal, shipping_cents: currentShipping.cents, payment_method: selected.value } });
   }
 
   await purevialClearCart();
 
-  document.getElementById('confirmed-order-number').textContent = order.id.slice(0, 8);
+  document.getElementById('confirmed-order-number').textContent = order.order_number || order.id.slice(0, 8);
   document.getElementById('payment-section').style.display = 'none';
+  document.getElementById('order-confirmation').style.display = 'block';
+  purevialUpdateCartCount();
+});
+
+document.getElementById('request-quote-btn').addEventListener('click', async () => {
+  const user = await purevialGetUser();
+  const btn = document.getElementById('request-quote-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  const { data: order, error: orderError } = await supabaseClient
+    .from('orders')
+    .insert({
+      user_id: user.id,
+      status: 'awaiting_shipping_quote',
+      payment_method: null,
+      total_cents: currentSubtotal,
+      shipping_cents: null,
+      ...buildShippingSnapshot()
+    })
+    .select()
+    .single();
+
+  if (orderError) {
+    alert('Something went wrong placing your order: ' + orderError.message);
+    btn.disabled = false;
+    btn.textContent = 'Request shipping quote';
+    return;
+  }
+
+  await createOrderItemsAndDecrementStock(order.id);
+
+  if (typeof purevialTrack === 'function') {
+    purevialTrack('order_placed', { metadata: { total_cents: currentSubtotal, awaiting_quote: true } });
+  }
+
+  await purevialClearCart();
+
+  document.getElementById('confirmed-order-number').textContent = order.order_number || order.id.slice(0, 8);
+  document.getElementById('confirmation-detail').textContent =
+    'We\'ll be in touch shortly with a shipping quote and payment instructions, using the contact details on your account. Check your account for order status updates.';
+  document.getElementById('quote-section').style.display = 'none';
   document.getElementById('order-confirmation').style.display = 'block';
   purevialUpdateCartCount();
 });

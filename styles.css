@@ -60,6 +60,8 @@ header.site{
   font-family:'Space Grotesk', sans-serif;
   font-weight:700; font-size:1.25rem; color:var(--blue-deep);
 }
+a.brand{text-decoration:none;}
+a.brand:hover{text-decoration:none; opacity:.85;}
 .brand-mark{
   width:22px; height:22px;
   border:2px solid var(--blue-deep);
@@ -379,6 +381,45 @@ footer a:hover{color:var(--blue-deep);}
   display:none; background:none; border:none; cursor:pointer;
   font-size:1.5rem; color:var(--blue-deep); line-height:1; padding:4px 8px;
 }
+
+/* ---------- Age / research-use gate ---------- */
+#age-gate-overlay{
+  position:fixed; inset:0; z-index:500;
+  background:rgba(18,30,43,0.85);
+  display:flex; align-items:center; justify-content:center;
+  padding:20px;
+}
+.age-gate-panel{
+  background:var(--panel); border-radius:6px; max-width:480px; width:100%;
+  padding:36px 32px; box-shadow:0 12px 40px rgba(18,30,43,0.3);
+}
+.age-gate-panel h2{font-size:1.3rem; text-align:center; margin-bottom:10px;}
+.age-gate-panel p{color:var(--ink-soft); font-size:.9rem; text-align:center; margin-bottom:20px;}
+.age-gate-check{
+  display:flex; align-items:flex-start; gap:10px;
+  font-size:.85rem; color:var(--ink); margin-bottom:14px; cursor:pointer;
+}
+.age-gate-check input{margin-top:3px; flex-shrink:0;}
+.age-gate-actions{margin-top:24px; text-align:center;}
+.age-gate-actions .btn{width:100%; justify-content:center;}
+.age-gate-actions .btn:disabled{opacity:.4; cursor:not-allowed;}
+.age-gate-exit{
+  display:block; margin-top:14px; font-size:.82rem; color:var(--ink-soft);
+  text-decoration:underline;
+}
+
+/* ---------- Shipping summary rows ---------- */
+.shipping-note{
+  font-size:.82rem; color:var(--ink-soft); margin-top:6px;
+}
+.shipping-note.quote{color:#B8860B; font-weight:600;}
+
+/* ---------- Address view/edit card ---------- */
+.address-view-card{
+  background:var(--panel); border:1px solid var(--line); padding:20px;
+  max-width:560px; font-size:.92rem; line-height:1.7;
+}
+.address-view-card .empty{color:var(--ink-soft);}
 
 /* ---------- Responsive ---------- */
 @media (max-width:860px){

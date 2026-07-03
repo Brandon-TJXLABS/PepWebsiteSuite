@@ -10,7 +10,7 @@
 
 <header class="site">
   <nav class="nav">
-    <div class="brand"><span class="brand-mark"></span> PureVial</div>
+    <a href="index.html" class="brand"><span class="brand-mark"></span> PureVial</a>
     <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
       <li><a href="index.html">Products</a></li>
@@ -35,7 +35,13 @@
 <section class="alt" style="padding-top:40px; padding-bottom:40px;">
   <div class="wrap">
     <div class="section-head" style="margin-bottom:20px;"><div class="eyebrow">Shipping details</div></div>
-    <form id="address-form" class="contact-form" style="max-width:560px;">
+
+    <div id="address-view" style="display:none;">
+      <div class="address-view-card" id="address-view-content"></div>
+      <button class="btn btn-outline" id="address-edit-btn" style="margin-top:14px;">Edit</button>
+    </div>
+
+    <form id="address-form" class="contact-form" style="max-width:560px; display:none;">
       <div class="field">
         <label for="phone">Phone</label>
         <input type="tel" id="phone">
@@ -65,7 +71,10 @@
         <input type="text" id="country" value="Australia">
       </div>
       <div id="address-saved" style="color:var(--verified); font-size:.85rem; display:none;">Saved.</div>
-      <button type="submit" class="btn btn-primary" style="justify-self:start;">Save details</button>
+      <div style="display:flex; gap:10px;">
+        <button type="submit" class="btn btn-primary">Save details</button>
+        <button type="button" class="btn btn-outline" id="address-cancel-btn" style="display:none;">Cancel</button>
+      </div>
     </form>
   </div>
 </section>
@@ -79,6 +88,7 @@
   </div>
 </section>
 
+<script src="js/age-gate.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
 <script src="js/nav.js"></script>
@@ -90,6 +100,7 @@ document.getElementById('logout-btn').addEventListener('click', purevialSignOut)
 
 let purevialCurrentUser = null;
 let purevialOrders = [];
+let currentProfileData = null;
 
 async function loadAccount() {
   const user = await purevialRequireAuth();
@@ -104,6 +115,32 @@ async function loadAccount() {
   await loadOrders();
 }
 
+function renderAddressView(profile) {
+  const hasAddress = profile && profile.address_line1;
+  const viewEl = document.getElementById('address-view');
+  const formEl = document.getElementById('address-form');
+  const cancelBtn = document.getElementById('address-cancel-btn');
+
+  if (!hasAddress) {
+    // Nothing saved yet — go straight to the form, no Cancel option since
+    // there's nothing to cancel back to.
+    viewEl.style.display = 'none';
+    formEl.style.display = 'grid';
+    cancelBtn.style.display = 'none';
+    return;
+  }
+
+  document.getElementById('address-view-content').innerHTML = `
+    ${profile.full_name || ''}<br>
+    ${profile.address_line1}${profile.address_line2 ? ', ' + profile.address_line2 : ''}<br>
+    ${profile.city || ''} ${profile.state || ''} ${profile.postcode || ''}<br>
+    ${profile.country || ''}<br>
+    ${profile.phone ? 'Phone: ' + profile.phone : '<span class="empty">No phone saved</span>'}
+  `;
+  viewEl.style.display = 'block';
+  formEl.style.display = 'none';
+}
+
 async function loadProfile(userId) {
   const { data: profile } = await supabaseClient
     .from('profiles')
@@ -111,14 +148,30 @@ async function loadProfile(userId) {
     .eq('id', userId)
     .maybeSingle();
 
-  if (!profile) return;
+  currentProfileData = profile;
+  if (!profile) {
+    renderAddressView(null);
+    return;
+  }
 
   const fields = ['phone', 'address_line1', 'address_line2', 'city', 'state', 'postcode', 'country'];
   fields.forEach(field => {
     const el = document.getElementById(field);
     if (el && profile[field]) el.value = profile[field];
   });
+
+  renderAddressView(profile);
 }
+
+document.getElementById('address-edit-btn').addEventListener('click', () => {
+  document.getElementById('address-view').style.display = 'none';
+  document.getElementById('address-form').style.display = 'grid';
+  document.getElementById('address-cancel-btn').style.display = 'inline-flex';
+});
+
+document.getElementById('address-cancel-btn').addEventListener('click', () => {
+  renderAddressView(currentProfileData);
+});
 
 document.getElementById('address-form').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -139,17 +192,27 @@ document.getElementById('address-form').addEventListener('submit', async (e) => 
     .update(updates)
     .eq('id', purevialCurrentUser.id);
 
-  const savedMsg = document.getElementById('address-saved');
   if (!error) {
+    currentProfileData = { ...currentProfileData, ...updates, full_name: currentProfileData ? currentProfileData.full_name : null };
+    const savedMsg = document.getElementById('address-saved');
     savedMsg.style.display = 'block';
-    setTimeout(() => { savedMsg.style.display = 'none'; }, 2500);
+    setTimeout(() => {
+      savedMsg.style.display = 'none';
+      renderAddressView(currentProfileData);
+    }, 1200);
   }
 });
+
+function statusColor(status) {
+  if (status === 'paid' || status === 'shipped') return 'var(--verified)';
+  if (status === 'awaiting_shipping_quote') return '#B8860B';
+  return 'var(--blue-mid)';
+}
 
 async function loadOrders() {
   const { data: orders, error } = await supabaseClient
     .from('orders')
-    .select('id, status, payment_method, total_cents, created_at, order_items ( product_id, product_name, quantity, price_cents )')
+    .select('id, order_number, status, payment_method, total_cents, shipping_cents, tracking_number, created_at, order_items ( product_id, product_name, quantity, price_cents )')
     .order('created_at', { ascending: false });
 
   const container = document.getElementById('orders-container');
@@ -166,27 +229,37 @@ async function loadOrders() {
     return;
   }
 
-  container.innerHTML = orders.map(order => `
+  container.innerHTML = orders.map(order => {
+    const displayNumber = order.order_number ? order.order_number : order.id.slice(0, 8);
+    const hasShipping = order.shipping_cents !== null && order.shipping_cents !== undefined;
+    const grandTotal = order.total_cents + (hasShipping ? order.shipping_cents : 0);
+    const paymentLabel = order.payment_method ? order.payment_method.replace('_', ' ') : 'not yet chosen';
+
+    return `
     <div class="card" style="margin-bottom:16px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div class="code mono">Order #${order.id.slice(0, 8)}</div>
-        <span class="pass" style="color:${order.status === 'paid' ? 'var(--verified)' : 'var(--blue-mid)'};">${order.status.replace('_', ' ').toUpperCase()}</span>
+        <div class="code mono">Order #${displayNumber}</div>
+        <span class="pass" style="color:${statusColor(order.status)};">${order.status.replace(/_/g, ' ').toUpperCase()}</span>
       </div>
       ${order.order_items.map(item => `
         <div class="coa-row">
           <span class="label">${item.product_name} × ${item.quantity}</span>
-          <span class="value">$${((item.price_cents * item.quantity) / 100).toFixed(2)}</span>
+          <span class="value">$${((item.price_cents * item.quantity) / 100).toFixed(2)} USD</span>
         </div>
       `).join('')}
-      <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${(order.total_cents / 100).toFixed(2)}</span></div>
+      <div class="coa-row"><span class="label">Subtotal</span><span class="value">$${(order.total_cents / 100).toFixed(2)} USD</span></div>
+      <div class="coa-row"><span class="label">Shipping</span><span class="value">${hasShipping ? '$' + (order.shipping_cents / 100).toFixed(2) + ' USD' : 'Awaiting quote'}</span></div>
+      <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${(grandTotal / 100).toFixed(2)} USD${hasShipping ? '' : ' + shipping'}</span></div>
+      ${order.tracking_number ? `<div class="coa-row"><span class="label">Tracking</span><span class="value">${order.tracking_number}</span></div>` : ''}
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
         <div style="font-size:.8rem; color:var(--ink-soft);">
-          Paid via ${order.payment_method.replace('_', ' ')} · ${new Date(order.created_at).toLocaleDateString('en-AU')}
+          Payment: ${paymentLabel} · ${new Date(order.created_at).toLocaleDateString('en-AU')}
         </div>
         <button class="btn btn-outline" style="padding:8px 16px; font-size:.85rem;" onclick="purevialReorder('${order.id}')">Reorder</button>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 async function purevialReorder(orderId) {

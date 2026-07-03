@@ -10,7 +10,7 @@
 
 <header class="site">
   <nav class="nav">
-    <div class="brand"><span class="brand-mark"></span> PureVial</div>
+    <a href="index.html" class="brand"><span class="brand-mark"></span> PureVial</a>
     <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
       <li><a href="index.html">Products</a></li>
@@ -35,9 +35,11 @@
     <div id="cart-container">
       <p style="color:var(--ink-soft);">Loading cart…</p>
     </div>
-    <div class="cart-summary" id="cart-summary" style="display:none;">
-      <span>Total</span>
-      <strong id="cart-total">$0.00</strong>
+    <div class="cart-summary" id="cart-summary" style="display:none; flex-direction:column; align-items:flex-end; gap:6px;">
+      <div class="coa-row" style="width:100%; max-width:340px; border:none;"><span class="label">Subtotal</span><span class="value" id="cart-subtotal">$0.00 USD</span></div>
+      <div class="coa-row" style="width:100%; max-width:340px; border:none;"><span class="label">Shipping</span><span class="value" id="cart-shipping">—</span></div>
+      <div class="coa-row" style="width:100%; max-width:340px;"><span class="label"><strong>Estimated total</strong></span><span class="value" id="cart-total">$0.00 USD</span></div>
+      <p class="shipping-note" id="cart-shipping-note" style="text-align:right; max-width:340px;"></p>
     </div>
     <div style="text-align:right; margin-top:12px;">
       <a href="checkout.html" class="btn btn-primary" id="checkout-btn" style="display:none;">Proceed to checkout</a>
@@ -45,12 +47,14 @@
   </div>
 </section>
 
+<script src="js/age-gate.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
+<script src="js/shipping.js"></script>
 <script>
 async function renderCart() {
   const user = await purevialRequireAuth();
@@ -64,11 +68,13 @@ async function renderCart() {
     return;
   }
 
-  let total = 0;
+  let subtotal = 0;
+  let totalVials = 0;
   container.innerHTML = cart.map(item => {
     const product = item.products;
     const lineTotal = product.price_cents * item.quantity;
-    total += lineTotal;
+    subtotal += lineTotal;
+    totalVials += item.quantity;
     return `
       <div class="cart-row">
         <div>
@@ -88,8 +94,23 @@ async function renderCart() {
     `;
   }).join('');
 
+  const shipping = purevialCalculateShipping(totalVials, subtotal);
+  const shippingNote = document.getElementById('cart-shipping-note');
+
   document.getElementById('cart-summary').style.display = 'flex';
-  document.getElementById('cart-total').textContent = '$' + (total / 100).toFixed(2);
+  document.getElementById('cart-subtotal').textContent = '$' + (subtotal / 100).toFixed(2) + ' USD';
+  document.getElementById('cart-shipping').textContent = shipping.label;
+
+  if (shipping.requiresQuote) {
+    document.getElementById('cart-total').textContent = '$' + (subtotal / 100).toFixed(2) + ' USD + shipping';
+    shippingNote.textContent = 'Your order is 60+ vials, so shipping needs a manual quote — you\'ll be able to request one at checkout.';
+    shippingNote.classList.add('quote');
+  } else {
+    document.getElementById('cart-total').textContent = '$' + ((subtotal + shipping.cents) / 100).toFixed(2) + ' USD';
+    shippingNote.textContent = 'Estimated — confirmed at checkout.';
+    shippingNote.classList.remove('quote');
+  }
+
   document.getElementById('checkout-btn').style.display = 'inline-flex';
 }
 
