@@ -338,10 +338,10 @@ footer a:hover{color:var(--blue-deep);}
 
 /* ---------- Card image ---------- */
 .card-image{
-  margin:-22px -20px 14px; height:150px; overflow:hidden;
+  margin:-22px -20px 14px; height:190px; overflow:hidden;
   background:var(--blue-pale); border-bottom:1px solid var(--line);
 }
-.card-image img{width:100%; height:100%; object-fit:cover; display:block;}
+.card-image img{width:100%; height:100%; object-fit:contain; display:block;}
 .card.clickable{cursor:pointer;}
 .card.clickable .btn, .card.clickable a{cursor:auto;}
 
@@ -368,7 +368,7 @@ footer a:hover{color:var(--blue-deep);}
 .modal-close:hover{color:var(--ink);}
 .modal-content{display:grid; grid-template-columns:1fr 1fr;}
 .modal-image{background:var(--blue-pale); min-height:260px;}
-.modal-image img{width:100%; height:100%; object-fit:cover; display:block;}
+.modal-image img{width:100%; height:100%; object-fit:contain; display:block;}
 .modal-details{padding:32px;}
 @media (max-width:640px){
   .modal-content{grid-template-columns:1fr;}
