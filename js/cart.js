@@ -7,6 +7,10 @@ async function purevialAddToCart(productId, quantity = 1) {
     return;
   }
 
+  if (typeof purevialTrack === 'function') {
+    purevialTrack('add_to_cart', { productId });
+  }
+
   // Check if this product is already in the cart, bump quantity if so
   const { data: existing } = await supabaseClient
     .from('cart_items')
