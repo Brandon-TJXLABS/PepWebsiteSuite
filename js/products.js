@@ -2,7 +2,7 @@
 // Clicking a card opens a quick-view modal with more detail.
 
 function formatPrice(cents) {
-  return '$' + (cents / 100).toFixed(2);
+  return '$' + (cents / 100).toFixed(2) + ' USD';
 }
 
 function formatRestockDate(dateStr) {
@@ -76,6 +76,7 @@ async function purevialLoadProducts() {
            ${p.restock_date ? `<div class="restock-note">Back in stock ${formatRestockDate(p.restock_date)}</div>` : ''}`
         : `<button class="btn btn-primary" style="width:100%; margin-top:14px; justify-content:center;" onclick="event.stopPropagation(); purevialAddToCart('${p.id}')">Add to cart</button>`
       }
+      ${p.wiki_url ? `<a href="${p.wiki_url}" onclick="event.stopPropagation();" class="coa-link" style="display:block; text-align:center; margin-top:10px; font-size:.82rem;">Research reference →</a>` : ''}
     </div>
   `;
   }).join('');
@@ -105,6 +106,7 @@ function purevialOpenModal(productId) {
       <div class="coa-row"><span class="label">Price</span><span class="value">${formatPrice(p.price_cents)}</span></div>
 
       ${p.coa_url ? `<a href="${p.coa_url}" target="_blank" rel="noopener" class="coa-link" style="display:inline-block; margin-top:12px;">View Certificate of Analysis →</a>` : ''}
+      ${p.wiki_url ? `<a href="${p.wiki_url}" class="coa-link" style="display:inline-block; margin-top:12px; margin-left:16px;">Research reference →</a>` : ''}
 
       ${outOfStock
         ? `<button class="btn btn-outline" style="width:100%; margin-top:20px; justify-content:center;" disabled>Out of stock</button>
