@@ -11,7 +11,8 @@
 <header class="site">
   <nav class="nav">
     <div class="brand"><span class="brand-mark"></span> PureVial</div>
-    <ul class="navlinks">
+    <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
+    <ul class="navlinks" id="nav-links">
       <li><a href="index.html" class="active">Products</a></li>
       <li><a href="about.html">About</a></li>
       <li><a href="lab-results.html">Lab Results</a></li>
@@ -78,6 +79,14 @@
   </div>
 </section>
 
+<!-- Product quick-view modal -->
+<div class="modal-overlay" id="product-modal" onclick="if(event.target === this) purevialCloseModal()">
+  <div class="modal-panel">
+    <button class="modal-close" onclick="purevialCloseModal()" aria-label="Close">×</button>
+    <div class="modal-content" id="product-modal-body"></div>
+  </div>
+</div>
+
 <footer>
   <div class="wrap">
     <div class="footer-grid">
@@ -92,6 +101,14 @@
           <li><a href="about.html">About us</a></li>
           <li><a href="lab-results.html">Lab results</a></li>
           <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="refund-policy.html">Shipping &amp; Refunds</a></li>
         </ul>
       </div>
       <div>
@@ -111,7 +128,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
+<script src="js/nav.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
 <script src="js/products.js"></script>
 </body>

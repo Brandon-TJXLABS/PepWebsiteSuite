@@ -11,7 +11,8 @@
 <header class="site">
   <nav class="nav">
     <div class="brand"><span class="brand-mark"></span> PureVial</div>
-    <ul class="navlinks">
+    <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
+    <ul class="navlinks" id="nav-links">
       <li><a href="index.html">Products</a></li>
       <li><a href="about.html">About</a></li>
       <li><a href="lab-results.html" class="active">Lab Results</a></li>
@@ -26,7 +27,7 @@
   <div class="wrap">
     <div class="eyebrow">Certificates of Analysis</div>
     <h1 style="max-width:20ch;">Every batch, independently verified.</h1>
-    <p class="lede">Results below come from an independent third-party lab. Replace with your real COA data and link each row to the underlying PDF report.</p>
+    <p class="lede">Results below come from an independent third-party lab, published as each batch clears testing.</p>
   </div>
 </section>
 
@@ -44,61 +45,8 @@
           <th>Report</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td>BPC-157</td>
-          <td class="mono">PV-2607-B4</td>
-          <td class="mono">2026-06-14</td>
-          <td class="mono">99.4%</td>
-          <td class="mono">&lt;0.05 EU/mg</td>
-          <td><span class="pass">PASS</span></td>
-          <td><a href="#">Download PDF</a></td>
-        </tr>
-        <tr>
-          <td>TB-500</td>
-          <td class="mono">PV-2607-T2</td>
-          <td class="mono">2026-06-14</td>
-          <td class="mono">99.1%</td>
-          <td class="mono">&lt;0.05 EU/mg</td>
-          <td><span class="pass">PASS</span></td>
-          <td><a href="#">Download PDF</a></td>
-        </tr>
-        <tr>
-          <td>Ipamorelin</td>
-          <td class="mono">PV-2606-I1</td>
-          <td class="mono">2026-06-02</td>
-          <td class="mono">99.6%</td>
-          <td class="mono">&lt;0.05 EU/mg</td>
-          <td><span class="pass">PASS</span></td>
-          <td><a href="#">Download PDF</a></td>
-        </tr>
-        <tr>
-          <td>GHK-Cu</td>
-          <td class="mono">PV-2606-G3</td>
-          <td class="mono">2026-06-02</td>
-          <td class="mono">98.9%</td>
-          <td class="mono">&lt;0.05 EU/mg</td>
-          <td><span class="pass">PASS</span></td>
-          <td><a href="#">Download PDF</a></td>
-        </tr>
-        <tr>
-          <td>NAD+</td>
-          <td class="mono">PV-2605-N7</td>
-          <td class="mono">2026-05-21</td>
-          <td class="mono">99.0%</td>
-          <td class="mono">&lt;0.05 EU/mg</td>
-          <td><span class="pass">PASS</span></td>
-          <td><a href="#">Download PDF</a></td>
-        </tr>
-        <tr>
-          <td>Semaglutide</td>
-          <td class="mono">PV-2605-S9</td>
-          <td class="mono">2026-05-21</td>
-          <td class="mono">99.3%</td>
-          <td class="mono">&lt;0.05 EU/mg</td>
-          <td><span class="pass">PASS</span></td>
-          <td><a href="#">Download PDF</a></td>
-        </tr>
+      <tbody id="lab-results-body">
+        <tr><td colspan="7" style="color:var(--ink-soft);">Loading lab results…</td></tr>
       </tbody>
     </table>
   </div>
@@ -152,6 +100,14 @@
         </ul>
       </div>
       <div>
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="refund-policy.html">Shipping &amp; Refunds</a></li>
+        </ul>
+      </div>
+      <div>
         <h4>Contact</h4>
         <ul>
           <li><a href="mailto:hello@purevial.example">hello@purevial.example</a></li>
@@ -168,7 +124,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
+<script src="js/nav.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
+<script src="js/lab-results.js"></script>
 </body>
 </html>

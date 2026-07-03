@@ -11,7 +11,8 @@
 <header class="site">
   <nav class="nav">
     <div class="brand"><span class="brand-mark"></span> PureVial</div>
-    <ul class="navlinks">
+    <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
+    <ul class="navlinks" id="nav-links">
       <li><a href="index.html">Products</a></li>
       <li><a href="about.html">About</a></li>
       <li><a href="lab-results.html">Lab Results</a></li>
@@ -26,11 +27,50 @@
   <div class="wrap">
     <div class="eyebrow">Your account</div>
     <h1 id="account-heading">Account</h1>
+    <p id="account-email" style="color:var(--ink-soft); margin-top:-8px;"></p>
     <button class="btn btn-outline" id="logout-btn" style="margin-top:12px;">Log out</button>
   </div>
 </section>
 
-<section style="padding-top:0;">
+<section class="alt" style="padding-top:40px; padding-bottom:40px;">
+  <div class="wrap">
+    <div class="section-head" style="margin-bottom:20px;"><div class="eyebrow">Shipping details</div></div>
+    <form id="address-form" class="contact-form" style="max-width:560px;">
+      <div class="field">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone">
+      </div>
+      <div class="field">
+        <label for="address_line1">Address line 1</label>
+        <input type="text" id="address_line1">
+      </div>
+      <div class="field">
+        <label for="address_line2">Address line 2 (optional)</label>
+        <input type="text" id="address_line2">
+      </div>
+      <div class="field">
+        <label for="city">Suburb / City</label>
+        <input type="text" id="city">
+      </div>
+      <div class="field">
+        <label for="state">State</label>
+        <input type="text" id="state">
+      </div>
+      <div class="field">
+        <label for="postcode">Postcode</label>
+        <input type="text" id="postcode">
+      </div>
+      <div class="field">
+        <label for="country">Country</label>
+        <input type="text" id="country" value="Australia">
+      </div>
+      <div id="address-saved" style="color:var(--verified); font-size:.85rem; display:none;">Saved.</div>
+      <button type="submit" class="btn btn-primary" style="justify-self:start;">Save details</button>
+    </form>
+  </div>
+</section>
+
+<section style="padding-top:40px;">
   <div class="wrap">
     <div class="section-head"><div class="eyebrow">Order history</div></div>
     <div id="orders-container">
@@ -41,21 +81,75 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
+<script src="js/nav.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
 <script>
 document.getElementById('logout-btn').addEventListener('click', purevialSignOut);
 
+let purevialCurrentUser = null;
+let purevialOrders = [];
+
 async function loadAccount() {
   const user = await purevialRequireAuth();
   if (!user) return;
+  purevialCurrentUser = user;
 
   document.getElementById('account-heading').textContent =
-    (user.user_metadata && user.user_metadata.full_name) ? user.user_metadata.full_name : user.email;
+    (user.user_metadata && user.user_metadata.full_name) ? user.user_metadata.full_name : 'Your account';
+  document.getElementById('account-email').textContent = user.email;
 
+  await loadProfile(user.id);
+  await loadOrders();
+}
+
+async function loadProfile(userId) {
+  const { data: profile } = await supabaseClient
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (!profile) return;
+
+  const fields = ['phone', 'address_line1', 'address_line2', 'city', 'state', 'postcode', 'country'];
+  fields.forEach(field => {
+    const el = document.getElementById(field);
+    if (el && profile[field]) el.value = profile[field];
+  });
+}
+
+document.getElementById('address-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!purevialCurrentUser) return;
+
+  const updates = {
+    phone: document.getElementById('phone').value,
+    address_line1: document.getElementById('address_line1').value,
+    address_line2: document.getElementById('address_line2').value,
+    city: document.getElementById('city').value,
+    state: document.getElementById('state').value,
+    postcode: document.getElementById('postcode').value,
+    country: document.getElementById('country').value
+  };
+
+  const { error } = await supabaseClient
+    .from('profiles')
+    .update(updates)
+    .eq('id', purevialCurrentUser.id);
+
+  const savedMsg = document.getElementById('address-saved');
+  if (!error) {
+    savedMsg.style.display = 'block';
+    setTimeout(() => { savedMsg.style.display = 'none'; }, 2500);
+  }
+});
+
+async function loadOrders() {
   const { data: orders, error } = await supabaseClient
     .from('orders')
-    .select('id, status, payment_method, total_cents, created_at, order_items ( product_name, quantity, price_cents )')
+    .select('id, status, payment_method, total_cents, created_at, order_items ( product_id, product_name, quantity, price_cents )')
     .order('created_at', { ascending: false });
 
   const container = document.getElementById('orders-container');
@@ -64,6 +158,8 @@ async function loadAccount() {
     container.innerHTML = '<p style="color:var(--ink-soft);">Could not load orders.</p>';
     return;
   }
+
+  purevialOrders = orders;
 
   if (orders.length === 0) {
     container.innerHTML = '<p style="color:var(--ink-soft);">No orders yet. <a href="index.html">Browse products</a>.</p>';
@@ -83,11 +179,26 @@ async function loadAccount() {
         </div>
       `).join('')}
       <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${(order.total_cents / 100).toFixed(2)}</span></div>
-      <div style="font-size:.8rem; color:var(--ink-soft); margin-top:8px;">
-        Paid via ${order.payment_method.replace('_', ' ')} · ${new Date(order.created_at).toLocaleDateString()}
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+        <div style="font-size:.8rem; color:var(--ink-soft);">
+          Paid via ${order.payment_method.replace('_', ' ')} · ${new Date(order.created_at).toLocaleDateString('en-AU')}
+        </div>
+        <button class="btn btn-outline" style="padding:8px 16px; font-size:.85rem;" onclick="purevialReorder('${order.id}')">Reorder</button>
       </div>
     </div>
   `).join('');
+}
+
+async function purevialReorder(orderId) {
+  const order = purevialOrders.find(o => o.id === orderId);
+  if (!order) return;
+
+  for (const item of order.order_items) {
+    if (item.product_id) {
+      await purevialAddToCart(item.product_id, item.quantity);
+    }
+  }
+  window.location.href = 'cart.html';
 }
 
 loadAccount();

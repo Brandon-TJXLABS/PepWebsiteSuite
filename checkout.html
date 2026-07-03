@@ -11,7 +11,8 @@
 <header class="site">
   <nav class="nav">
     <div class="brand"><span class="brand-mark"></span> PureVial</div>
-    <ul class="navlinks">
+    <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
+    <ul class="navlinks" id="nav-links">
       <li><a href="index.html">Products</a></li>
       <li><a href="about.html">About</a></li>
       <li><a href="lab-results.html">Lab Results</a></li>
@@ -97,7 +98,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
+<script src="js/nav.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
 <script>
 let currentCart = [];
@@ -106,6 +109,8 @@ let currentTotal = 0;
 async function loadOrderSummary() {
   const user = await purevialRequireAuth();
   if (!user) return;
+
+  if (typeof purevialTrack === 'function') purevialTrack('checkout_start');
 
   currentCart = await purevialGetCart();
   const summaryEl = document.getElementById('order-summary');
@@ -179,6 +184,22 @@ document.getElementById('place-order-btn').addEventListener('click', async () =>
   }));
 
   await supabaseClient.from('order_items').insert(orderItems);
+
+  // Reduce stock for each item purchased. Uses a database function so two
+  // customers buying the last unit at once can't both succeed.
+  await Promise.all(
+    currentCart.map(item =>
+      supabaseClient.rpc('decrement_stock', {
+        p_product_id: item.products.id,
+        p_quantity: item.quantity
+      })
+    )
+  );
+
+  if (typeof purevialTrack === 'function') {
+    purevialTrack('order_placed', { metadata: { total_cents: currentTotal, payment_method: selected.value } });
+  }
+
   await purevialClearCart();
 
   document.getElementById('payment-section').style.display = 'none';
