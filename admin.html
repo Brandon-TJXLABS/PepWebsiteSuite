@@ -24,17 +24,35 @@
   </nav>
 </header>
 
-<section class="hero" style="padding-bottom:40px;">
+<section class="hero" style="padding-bottom:32px;">
   <div class="wrap">
     <div class="eyebrow">Admin</div>
     <h1>Admin dashboard</h1>
     <p style="color:var(--ink-soft); margin-top:-8px;">Orders and inventory — highest-friction actions only.</p>
+
+    <div id="stats-row" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-top:24px;">
+      <div class="card" style="padding:18px 20px;">
+        <div class="code mono" style="color:var(--ink-soft);">Awaiting action</div>
+        <div id="stat-awaiting" style="font-family:'Space Grotesk',sans-serif; font-size:1.8rem; font-weight:700; color:var(--blue-deep); margin-top:4px;">—</div>
+      </div>
+      <div class="card" style="padding:18px 20px;">
+        <div class="code mono" style="color:var(--ink-soft);">Paid revenue today</div>
+        <div id="stat-revenue" style="font-family:'Space Grotesk',sans-serif; font-size:1.8rem; font-weight:700; color:var(--verified); margin-top:4px;">—</div>
+      </div>
+      <div class="card" style="padding:18px 20px;">
+        <div class="code mono" style="color:var(--ink-soft);">Low stock products</div>
+        <div id="stat-lowstock" style="font-family:'Space Grotesk',sans-serif; font-size:1.8rem; font-weight:700; color:#B8860B; margin-top:4px;">—</div>
+      </div>
+    </div>
   </div>
 </section>
 
 <section style="padding-top:40px; padding-bottom:40px;">
   <div class="wrap">
-    <div class="section-head" style="margin-bottom:24px;"><div class="eyebrow">Orders</div></div>
+    <div class="section-head" style="margin-bottom:24px; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;">
+      <div class="eyebrow" style="margin-bottom:0;">Orders</div>
+      <button class="btn btn-outline" id="export-csv-btn" style="padding:8px 16px; font-size:.85rem;">Export CSV</button>
+    </div>
 
     <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:24px;">
       <div class="field" style="margin:0; min-width:220px;">
@@ -50,8 +68,8 @@
         </select>
       </div>
       <div class="field" style="margin:0; flex:1; min-width:220px;">
-        <label for="order-search">Search by customer name or email</label>
-        <input type="text" id="order-search" placeholder="e.g. jane@example.com">
+        <label for="order-search">Search by customer, email, or order #</label>
+        <input type="text" id="order-search" placeholder="e.g. jane@example.com or 47">
       </div>
     </div>
 
@@ -83,6 +101,8 @@ let allOrders = [];
 let allProducts = [];
 
 const ORDER_STATUSES = ['pending_payment', 'awaiting_shipping_quote', 'paid', 'shipped', 'cancelled'];
+const LOW_STOCK_THRESHOLD = 5; // must match js/products.js
+const STALE_UNPAID_HOURS = 48;
 
 function statusColor(status) {
   if (status === 'paid' || status === 'shipped') return 'var(--verified)';
@@ -93,6 +113,12 @@ function statusColor(status) {
 
 function moneyFromCents(cents) {
   return `$${(cents / 100).toFixed(2)} USD`;
+}
+
+function isStaleUnpaid(order) {
+  if (order.status !== 'pending_payment') return false;
+  const ageHours = (Date.now() - new Date(order.created_at).getTime()) / 3600000;
+  return ageHours > STALE_UNPAID_HOURS;
 }
 
 async function loadOrders() {
@@ -110,6 +136,7 @@ async function loadOrders() {
 
   allOrders = orders;
   renderOrders();
+  renderStats();
 }
 
 function renderOrders() {
@@ -127,7 +154,8 @@ function renderOrders() {
     filtered = filtered.filter(o => {
       const name = (o.profiles?.full_name || '').toLowerCase();
       const email = (o.profiles?.email || '').toLowerCase();
-      return name.includes(search) || email.includes(search);
+      const displayNumber = String(o.order_number || o.id.slice(0, 8)).toLowerCase();
+      return name.includes(search) || email.includes(search) || displayNumber.includes(search);
     });
   }
 
@@ -141,12 +169,16 @@ function renderOrders() {
     const hasShipping = order.shipping_cents !== null && order.shipping_cents !== undefined;
     const grandTotal = order.total_cents + (hasShipping ? order.shipping_cents : 0);
     const customer = order.profiles || {};
+    const stale = isStaleUnpaid(order);
 
     return `
-    <div class="card" style="margin-bottom:16px;" data-order-id="${order.id}">
+    <div class="card" style="margin-bottom:16px; ${stale ? 'border-color:#B3261E;' : ''}" data-order-id="${order.id}">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
         <div class="code mono">Order #${displayNumber}</div>
-        <span class="pass" style="color:${statusColor(order.status)};">${order.status.replace(/_/g, ' ').toUpperCase()}</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+          ${stale ? '<span style="font-size:.72rem; font-weight:700; color:#B3261E; text-transform:uppercase;">Unpaid 48h+</span>' : ''}
+          <span class="pass" style="color:${statusColor(order.status)};">${order.status.replace(/_/g, ' ').toUpperCase()}</span>
+        </div>
       </div>
 
       <div style="font-size:.88rem; color:var(--ink-soft); margin-bottom:12px;">
@@ -164,6 +196,15 @@ function renderOrders() {
       <div class="coa-row"><span class="label">Subtotal</span><span class="value">${moneyFromCents(order.total_cents)}</span></div>
       <div class="coa-row"><span class="label">Shipping</span><span class="value">${hasShipping ? moneyFromCents(order.shipping_cents) : 'Awaiting quote'}</span></div>
       <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">${moneyFromCents(grandTotal)}${hasShipping ? '' : ' + shipping'}</span></div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
+        <button class="btn btn-outline admin-quick-paid" style="padding:8px 14px; font-size:.82rem;">Mark Paid</button>
+        <button class="btn btn-outline admin-quick-shipped" style="padding:8px 14px; font-size:.82rem;">Mark Shipped</button>
+        <button class="btn btn-outline admin-quick-cancel" style="padding:8px 14px; font-size:.82rem; color:#B3261E; border-color:#B3261E;">Cancel</button>
+        <button class="btn btn-outline admin-resend-confirmation" style="padding:8px 14px; font-size:.82rem;">Resend confirmation</button>
+        ${order.status === 'shipped' ? '<button class="btn btn-outline admin-resend-shipped" style="padding:8px 14px; font-size:.82rem;">Resend shipped email</button>' : ''}
+      </div>
+      <span class="admin-quick-feedback" style="font-size:.85rem; display:none; margin-top:8px;"></span>
 
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:16px; padding-top:16px; border-top:1px dashed var(--line);">
         <div class="field" style="margin:0;">
@@ -185,6 +226,10 @@ function renderOrders() {
           <input type="number" step="0.01" min="0" class="admin-shipping-cents" value="${hasShipping ? (order.shipping_cents / 100).toFixed(2) : ''}">
         </div>
       </div>
+      <div class="field" style="margin:12px 0 0;">
+        <label>Internal notes (not shown to customer)</label>
+        <textarea class="admin-notes" rows="2">${order.notes || ''}</textarea>
+      </div>
       <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
         <button class="btn btn-primary admin-save-order" style="padding:10px 20px; font-size:.88rem;">Save</button>
         <span class="admin-order-feedback" style="font-size:.85rem; display:none;"></span>
@@ -196,6 +241,87 @@ function renderOrders() {
   container.querySelectorAll('.admin-save-order').forEach(btn => {
     btn.addEventListener('click', (e) => saveOrder(e.target.closest('.card')));
   });
+  container.querySelectorAll('.admin-quick-paid').forEach(btn => {
+    btn.addEventListener('click', (e) => quickUpdateOrder(e.target.closest('.card'), { status: 'paid' }));
+  });
+  container.querySelectorAll('.admin-quick-shipped').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const card = e.target.closest('.card');
+      const tracking = prompt('Tracking number (leave blank to skip):', '');
+      if (tracking === null) return; // cancelled prompt
+      quickUpdateOrder(card, {
+        status: 'shipped',
+        tracking_number: tracking || null,
+        shipped_at: new Date().toISOString()
+      });
+    });
+  });
+  container.querySelectorAll('.admin-quick-cancel').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      if (!confirm('Cancel this order?')) return;
+      quickUpdateOrder(e.target.closest('.card'), { status: 'cancelled' });
+    });
+  });
+  container.querySelectorAll('.admin-resend-confirmation').forEach(btn => {
+    btn.addEventListener('click', (e) => resendOrderEmail(e.target.closest('.card'), 'confirmation'));
+  });
+  container.querySelectorAll('.admin-resend-shipped').forEach(btn => {
+    btn.addEventListener('click', (e) => resendOrderEmail(e.target.closest('.card'), 'shipped'));
+  });
+}
+
+async function quickUpdateOrder(card, updates) {
+  const orderId = card.dataset.orderId;
+  const feedback = card.querySelector('.admin-quick-feedback');
+
+  const { error } = await supabaseClient.from('orders').update(updates).eq('id', orderId);
+
+  feedback.style.display = 'inline';
+  if (error) {
+    feedback.style.color = '#B3261E';
+    feedback.textContent = 'Update failed.';
+    console.error(error);
+  } else {
+    const idx = allOrders.findIndex(o => o.id === orderId);
+    if (idx !== -1) allOrders[idx] = { ...allOrders[idx], ...updates };
+    feedback.style.color = 'var(--verified)';
+    feedback.textContent = 'Updated.';
+    setTimeout(() => { renderOrders(); renderStats(); }, 700);
+  }
+}
+
+async function resendOrderEmail(card, kind) {
+  const orderId = card.dataset.orderId;
+  const feedback = card.querySelector('.admin-quick-feedback');
+  feedback.style.display = 'inline';
+  feedback.style.color = 'var(--ink-soft)';
+  feedback.textContent = 'Sending…';
+
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+
+  try {
+    const resp = await fetch(`${SUPABASE_URL}/functions/v1/send-order-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({ action: 'resend', order_id: orderId, kind })
+    });
+
+    if (resp.ok) {
+      feedback.style.color = 'var(--verified)';
+      feedback.textContent = 'Email sent.';
+    } else {
+      feedback.style.color = '#B3261E';
+      feedback.textContent = 'Send failed (' + resp.status + ').';
+    }
+  } catch (err) {
+    feedback.style.color = '#B3261E';
+    feedback.textContent = 'Send failed.';
+    console.error(err);
+  }
 }
 
 async function saveOrder(card) {
@@ -206,12 +332,13 @@ async function saveOrder(card) {
   const shipped_at = shippedAtValue ? new Date(shippedAtValue).toISOString() : null;
   const shippingValue = card.querySelector('.admin-shipping-cents').value;
   const shipping_cents = shippingValue !== '' ? Math.round(parseFloat(shippingValue) * 100) : null;
+  const notes = card.querySelector('.admin-notes').value || null;
 
   const feedback = card.querySelector('.admin-order-feedback');
 
   const { error } = await supabaseClient
     .from('orders')
-    .update({ status, tracking_number, shipped_at, shipping_cents })
+    .update({ status, tracking_number, shipped_at, shipping_cents, notes })
     .eq('id', orderId);
 
   feedback.style.display = 'inline';
@@ -223,9 +350,73 @@ async function saveOrder(card) {
     feedback.style.color = 'var(--verified)';
     feedback.textContent = 'Saved.';
     const idx = allOrders.findIndex(o => o.id === orderId);
-    if (idx !== -1) allOrders[idx] = { ...allOrders[idx], status, tracking_number, shipped_at, shipping_cents };
-    setTimeout(() => renderOrders(), 900);
+    if (idx !== -1) allOrders[idx] = { ...allOrders[idx], status, tracking_number, shipped_at, shipping_cents, notes };
+    setTimeout(() => { renderOrders(); renderStats(); }, 900);
   }
+}
+
+function renderStats() {
+  const awaiting = allOrders.filter(o => o.status === 'pending_payment' || o.status === 'awaiting_shipping_quote').length;
+  document.getElementById('stat-awaiting').textContent = awaiting;
+
+  const today = new Date().toDateString();
+  const revenueCents = allOrders
+    .filter(o => o.status === 'paid' && new Date(o.created_at).toDateString() === today)
+    .reduce((sum, o) => sum + o.total_cents + (o.shipping_cents || 0), 0);
+  document.getElementById('stat-revenue').textContent = moneyFromCents(revenueCents);
+
+  const lowStock = allProducts.filter(p => p.stock_quantity <= LOW_STOCK_THRESHOLD).length;
+  document.getElementById('stat-lowstock').textContent = lowStock;
+}
+
+function exportOrdersCsv() {
+  const statusFilter = document.getElementById('order-status-filter').value;
+  const search = document.getElementById('order-search').value.trim().toLowerCase();
+
+  let filtered = allOrders;
+  if (statusFilter === 'open') {
+    filtered = filtered.filter(o => o.status === 'pending_payment' || o.status === 'awaiting_shipping_quote');
+  } else if (statusFilter !== 'all') {
+    filtered = filtered.filter(o => o.status === statusFilter);
+  }
+  if (search) {
+    filtered = filtered.filter(o => {
+      const name = (o.profiles?.full_name || '').toLowerCase();
+      const email = (o.profiles?.email || '').toLowerCase();
+      const displayNumber = String(o.order_number || o.id.slice(0, 8)).toLowerCase();
+      return name.includes(search) || email.includes(search) || displayNumber.includes(search);
+    });
+  }
+
+  const escapeCsv = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+  const header = ['Order #', 'Customer', 'Email', 'Status', 'Subtotal USD', 'Shipping USD', 'Total USD', 'Payment method', 'Tracking', 'Created at'];
+  const rows = filtered.map(o => {
+    const hasShipping = o.shipping_cents !== null && o.shipping_cents !== undefined;
+    const total = (o.total_cents + (hasShipping ? o.shipping_cents : 0)) / 100;
+    return [
+      o.order_number || o.id.slice(0, 8),
+      o.profiles?.full_name || '',
+      o.profiles?.email || '',
+      o.status,
+      (o.total_cents / 100).toFixed(2),
+      hasShipping ? (o.shipping_cents / 100).toFixed(2) : '',
+      total.toFixed(2),
+      o.payment_method || '',
+      o.tracking_number || '',
+      o.created_at
+    ].map(escapeCsv).join(',');
+  });
+
+  const csv = [header.map(escapeCsv).join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `aciona-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 async function loadProducts() {
@@ -243,19 +434,24 @@ async function loadProducts() {
 
   allProducts = products;
   renderProducts();
+  renderStats();
 }
 
 function renderProducts() {
   const container = document.getElementById('products-container');
 
-  container.innerHTML = allProducts.map(product => `
-    <div class="card" style="margin-bottom:16px;" data-product-id="${product.id}">
+  container.innerHTML = allProducts.map(product => {
+    const lowStock = product.stock_quantity <= LOW_STOCK_THRESHOLD;
+    return `
+    <div class="card" style="margin-bottom:16px; ${lowStock ? 'border-color:#B8860B;' : ''}" data-product-id="${product.id}">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
         <div>
           <div class="code mono">${product.sku}</div>
           <h3 style="margin:.2em 0 0;">${product.name}</h3>
         </div>
-        <div class="code mono" style="color:var(--ink-soft);">Current stock: ${product.stock_quantity}</div>
+        <div class="code mono" style="color:${lowStock ? '#B8860B' : 'var(--ink-soft)'};">
+          ${lowStock ? 'LOW STOCK — ' : ''}Current stock: ${product.stock_quantity}
+        </div>
       </div>
 
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:12px;">
@@ -276,7 +472,8 @@ function renderProducts() {
         <span class="admin-product-feedback" style="font-size:.85rem; display:none;"></span>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   container.querySelectorAll('.admin-save-product').forEach(btn => {
     btn.addEventListener('click', (e) => saveProduct(e.target.closest('.card')));
@@ -306,11 +503,13 @@ async function saveProduct(card) {
     feedback.textContent = 'Saved.';
     const idx = allProducts.findIndex(p => p.id === productId);
     if (idx !== -1) allProducts[idx] = { ...allProducts[idx], stock_quantity, restock_date, active };
+    renderStats();
   }
 }
 
 document.getElementById('order-status-filter').addEventListener('change', renderOrders);
 document.getElementById('order-search').addEventListener('input', renderOrders);
+document.getElementById('export-csv-btn').addEventListener('click', exportOrdersCsv);
 
 async function loadAdminDashboard() {
   const user = await acionaRequireAdmin();

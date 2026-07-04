@@ -28,7 +28,10 @@
     <div class="eyebrow">Your account</div>
     <h1 id="account-heading">Account</h1>
     <p id="account-email" style="color:var(--ink-soft); margin-top:-8px;"></p>
-    <button class="btn btn-outline" id="logout-btn" style="margin-top:12px;">Log out</button>
+    <div style="display:flex; gap:10px; margin-top:12px;">
+      <button class="btn btn-outline" id="logout-btn">Log out</button>
+      <a href="admin.html" class="btn btn-primary" id="admin-dashboard-link" style="display:none;">Admin dashboard</a>
+    </div>
   </div>
 </section>
 
@@ -152,6 +155,10 @@ async function loadProfile(userId) {
   if (!profile) {
     renderAddressView(null);
     return;
+  }
+
+  if (profile.is_admin) {
+    document.getElementById('admin-dashboard-link').style.display = 'inline-flex';
   }
 
   const fields = ['phone', 'address_line1', 'address_line2', 'city', 'state', 'postcode', 'country'];
