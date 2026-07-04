@@ -18,6 +18,11 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// Shared secret set on both this function's secrets AND as a custom header
+// on the Database Webhook — comparing against SUPABASE_SERVICE_ROLE_KEY
+// directly turned out not to match whatever token Supabase's webhook
+// actually sends, so this is a simpler, fully-controlled alternative.
+const WEBHOOK_SECRET = Deno.env.get("WEBHOOK_SECRET")!;
 
 // Matches styles.css :root variables, since email clients can't read the stylesheet.
 const COLOR = {
@@ -256,9 +261,10 @@ Deno.serve(async (req) => {
     return sendOrderEmail(order_id, kind);
   }
 
-  // Database Webhook path: only trusted if it's really Supabase's own webhook,
-  // which authenticates with the service-role key — not just any valid JWT.
-  if (bearerToken !== SUPABASE_SERVICE_ROLE_KEY) {
+  // Database Webhook path: only trusted if it presents the shared secret set
+  // as a custom header on the webhook config (see WEBHOOK_SECRET above).
+  const webhookSecretHeader = req.headers.get("x-webhook-secret") ?? "";
+  if (webhookSecretHeader !== WEBHOOK_SECRET) {
     return resp("forbidden", 403);
   }
 
