@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin — Aciona</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site">
+  <nav class="nav">
+    <a href="index.html" class="brand"><span class="brand-mark"></span> Aciona</a>
+    <button class="nav-toggle" onclick="acionaToggleNav()" aria-label="Menu">☰</button>
+    <ul class="navlinks" id="nav-links">
+      <li><a href="index.html">Products</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="lab-results.html">Lab Results</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="cart.html">Cart <span id="cart-count" class="cart-badge"></span></a></li>
+      <li><a href="account.html" id="nav-account">Account</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="hero" style="padding-bottom:40px;">
+  <div class="wrap">
+    <div class="eyebrow">Admin</div>
+    <h1>Admin dashboard</h1>
+    <p style="color:var(--ink-soft); margin-top:-8px;">Orders and inventory — highest-friction actions only.</p>
+  </div>
+</section>
+
+<section style="padding-top:40px; padding-bottom:40px;">
+  <div class="wrap">
+    <div class="section-head" style="margin-bottom:24px;"><div class="eyebrow">Orders</div></div>
+
+    <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:24px;">
+      <div class="field" style="margin:0; min-width:220px;">
+        <label for="order-status-filter">Status</label>
+        <select id="order-status-filter">
+          <option value="open" selected>Open (pending payment / awaiting quote)</option>
+          <option value="all">All statuses</option>
+          <option value="pending_payment">Pending payment</option>
+          <option value="awaiting_shipping_quote">Awaiting shipping quote</option>
+          <option value="paid">Paid</option>
+          <option value="shipped">Shipped</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="field" style="margin:0; flex:1; min-width:220px;">
+        <label for="order-search">Search by customer name or email</label>
+        <input type="text" id="order-search" placeholder="e.g. jane@example.com">
+      </div>
+    </div>
+
+    <div id="orders-container">
+      <p style="color:var(--ink-soft);">Loading orders…</p>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head" style="margin-bottom:24px;"><div class="eyebrow">Inventory</div></div>
+    <div id="products-container">
+      <p style="color:var(--ink-soft);">Loading products…</p>
+    </div>
+  </div>
+</section>
+
+<script src="js/age-gate.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/admin.js"></script>
+<script>
+let allOrders = [];
+let allProducts = [];
+
+const ORDER_STATUSES = ['pending_payment', 'awaiting_shipping_quote', 'paid', 'shipped', 'cancelled'];
+
+function statusColor(status) {
+  if (status === 'paid' || status === 'shipped') return 'var(--verified)';
+  if (status === 'awaiting_shipping_quote') return '#B8860B';
+  if (status === 'cancelled') return '#B3261E';
+  return 'var(--blue-mid)';
+}
+
+function moneyFromCents(cents) {
+  return `$${(cents / 100).toFixed(2)} USD`;
+}
+
+async function loadOrders() {
+  const { data: orders, error } = await supabaseClient
+    .from('orders')
+    .select('*, profiles(full_name,email,phone), order_items(*)')
+    .order('created_at', { ascending: false });
+
+  const container = document.getElementById('orders-container');
+  if (error) {
+    container.innerHTML = '<p style="color:var(--ink-soft);">Could not load orders.</p>';
+    console.error(error);
+    return;
+  }
+
+  allOrders = orders;
+  renderOrders();
+}
+
+function renderOrders() {
+  const container = document.getElementById('orders-container');
+  const statusFilter = document.getElementById('order-status-filter').value;
+  const search = document.getElementById('order-search').value.trim().toLowerCase();
+
+  let filtered = allOrders;
+  if (statusFilter === 'open') {
+    filtered = filtered.filter(o => o.status === 'pending_payment' || o.status === 'awaiting_shipping_quote');
+  } else if (statusFilter !== 'all') {
+    filtered = filtered.filter(o => o.status === statusFilter);
+  }
+  if (search) {
+    filtered = filtered.filter(o => {
+      const name = (o.profiles?.full_name || '').toLowerCase();
+      const email = (o.profiles?.email || '').toLowerCase();
+      return name.includes(search) || email.includes(search);
+    });
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="color:var(--ink-soft);">No matching orders.</p>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(order => {
+    const displayNumber = order.order_number ? order.order_number : order.id.slice(0, 8);
+    const hasShipping = order.shipping_cents !== null && order.shipping_cents !== undefined;
+    const grandTotal = order.total_cents + (hasShipping ? order.shipping_cents : 0);
+    const customer = order.profiles || {};
+
+    return `
+    <div class="card" style="margin-bottom:16px;" data-order-id="${order.id}">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+        <div class="code mono">Order #${displayNumber}</div>
+        <span class="pass" style="color:${statusColor(order.status)};">${order.status.replace(/_/g, ' ').toUpperCase()}</span>
+      </div>
+
+      <div style="font-size:.88rem; color:var(--ink-soft); margin-bottom:12px;">
+        ${customer.full_name || '<span class="empty">No name on file</span>'} ·
+        ${customer.email || '<span class="empty">No email on file</span>'}
+        ${customer.phone ? ' · ' + customer.phone : ''}
+      </div>
+
+      ${order.order_items.map(item => `
+        <div class="coa-row">
+          <span class="label">${item.product_name} × ${item.quantity}</span>
+          <span class="value">${moneyFromCents(item.price_cents * item.quantity)}</span>
+        </div>
+      `).join('')}
+      <div class="coa-row"><span class="label">Subtotal</span><span class="value">${moneyFromCents(order.total_cents)}</span></div>
+      <div class="coa-row"><span class="label">Shipping</span><span class="value">${hasShipping ? moneyFromCents(order.shipping_cents) : 'Awaiting quote'}</span></div>
+      <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">${moneyFromCents(grandTotal)}${hasShipping ? '' : ' + shipping'}</span></div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:16px; padding-top:16px; border-top:1px dashed var(--line);">
+        <div class="field" style="margin:0;">
+          <label>Status</label>
+          <select class="admin-status">
+            ${ORDER_STATUSES.map(s => `<option value="${s}" ${s === order.status ? 'selected' : ''}>${s.replace(/_/g, ' ')}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field" style="margin:0;">
+          <label>Tracking number</label>
+          <input type="text" class="admin-tracking" value="${order.tracking_number || ''}">
+        </div>
+        <div class="field" style="margin:0;">
+          <label>Shipped date</label>
+          <input type="date" class="admin-shipped-at" value="${order.shipped_at ? order.shipped_at.slice(0, 10) : ''}">
+        </div>
+        <div class="field" style="margin:0;">
+          <label>Shipping (USD)</label>
+          <input type="number" step="0.01" min="0" class="admin-shipping-cents" value="${hasShipping ? (order.shipping_cents / 100).toFixed(2) : ''}">
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+        <button class="btn btn-primary admin-save-order" style="padding:10px 20px; font-size:.88rem;">Save</button>
+        <span class="admin-order-feedback" style="font-size:.85rem; display:none;"></span>
+      </div>
+    </div>
+  `;
+  }).join('');
+
+  container.querySelectorAll('.admin-save-order').forEach(btn => {
+    btn.addEventListener('click', (e) => saveOrder(e.target.closest('.card')));
+  });
+}
+
+async function saveOrder(card) {
+  const orderId = card.dataset.orderId;
+  const status = card.querySelector('.admin-status').value;
+  const tracking_number = card.querySelector('.admin-tracking').value || null;
+  const shippedAtValue = card.querySelector('.admin-shipped-at').value;
+  const shipped_at = shippedAtValue ? new Date(shippedAtValue).toISOString() : null;
+  const shippingValue = card.querySelector('.admin-shipping-cents').value;
+  const shipping_cents = shippingValue !== '' ? Math.round(parseFloat(shippingValue) * 100) : null;
+
+  const feedback = card.querySelector('.admin-order-feedback');
+
+  const { error } = await supabaseClient
+    .from('orders')
+    .update({ status, tracking_number, shipped_at, shipping_cents })
+    .eq('id', orderId);
+
+  feedback.style.display = 'inline';
+  if (error) {
+    feedback.style.color = '#B3261E';
+    feedback.textContent = 'Save failed.';
+    console.error(error);
+  } else {
+    feedback.style.color = 'var(--verified)';
+    feedback.textContent = 'Saved.';
+    const idx = allOrders.findIndex(o => o.id === orderId);
+    if (idx !== -1) allOrders[idx] = { ...allOrders[idx], status, tracking_number, shipped_at, shipping_cents };
+    setTimeout(() => renderOrders(), 900);
+  }
+}
+
+async function loadProducts() {
+  const { data: products, error } = await supabaseClient
+    .from('products')
+    .select('*')
+    .order('name');
+
+  const container = document.getElementById('products-container');
+  if (error) {
+    container.innerHTML = '<p style="color:var(--ink-soft);">Could not load products.</p>';
+    console.error(error);
+    return;
+  }
+
+  allProducts = products;
+  renderProducts();
+}
+
+function renderProducts() {
+  const container = document.getElementById('products-container');
+
+  container.innerHTML = allProducts.map(product => `
+    <div class="card" style="margin-bottom:16px;" data-product-id="${product.id}">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+        <div>
+          <div class="code mono">${product.sku}</div>
+          <h3 style="margin:.2em 0 0;">${product.name}</h3>
+        </div>
+        <div class="code mono" style="color:var(--ink-soft);">Current stock: ${product.stock_quantity}</div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:12px;">
+        <div class="field" style="margin:0;">
+          <label>Stock quantity</label>
+          <input type="number" min="0" class="admin-stock" value="${product.stock_quantity}">
+        </div>
+        <div class="field" style="margin:0;">
+          <label>Restock date</label>
+          <input type="date" class="admin-restock-date" value="${product.restock_date || ''}">
+        </div>
+        <div class="field" style="margin:0; display:flex; align-items:center; gap:8px; margin-top:22px;">
+          <label style="margin:0;"><input type="checkbox" class="admin-active" ${product.active ? 'checked' : ''}> Active</label>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+        <button class="btn btn-outline admin-save-product" style="padding:10px 20px; font-size:.88rem;">Save</button>
+        <span class="admin-product-feedback" style="font-size:.85rem; display:none;"></span>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.admin-save-product').forEach(btn => {
+    btn.addEventListener('click', (e) => saveProduct(e.target.closest('.card')));
+  });
+}
+
+async function saveProduct(card) {
+  const productId = card.dataset.productId;
+  const stock_quantity = parseInt(card.querySelector('.admin-stock').value, 10);
+  const restock_date = card.querySelector('.admin-restock-date').value || null;
+  const active = card.querySelector('.admin-active').checked;
+
+  const feedback = card.querySelector('.admin-product-feedback');
+
+  const { error } = await supabaseClient
+    .from('products')
+    .update({ stock_quantity, restock_date, active })
+    .eq('id', productId);
+
+  feedback.style.display = 'inline';
+  if (error) {
+    feedback.style.color = '#B3261E';
+    feedback.textContent = 'Save failed.';
+    console.error(error);
+  } else {
+    feedback.style.color = 'var(--verified)';
+    feedback.textContent = 'Saved.';
+    const idx = allProducts.findIndex(p => p.id === productId);
+    if (idx !== -1) allProducts[idx] = { ...allProducts[idx], stock_quantity, restock_date, active };
+  }
+}
+
+document.getElementById('order-status-filter').addEventListener('change', renderOrders);
+document.getElementById('order-search').addEventListener('input', renderOrders);
+
+async function loadAdminDashboard() {
+  const user = await acionaRequireAdmin();
+  if (!user) return;
+  await loadOrders();
+  await loadProducts();
+}
+
+loadAdminDashboard();
+</script>
+
+</body>
+</html>
