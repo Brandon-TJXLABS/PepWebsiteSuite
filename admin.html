@@ -170,6 +170,9 @@ function renderOrders() {
     const grandTotal = order.total_cents + (hasShipping ? order.shipping_cents : 0);
     const customer = order.profiles || {};
     const stale = isStaleUnpaid(order);
+    const isCancelled = order.status === 'cancelled';
+    const isShipped = order.status === 'shipped';
+    const isPaid = order.status === 'paid' || isShipped;
 
     return `
     <div class="card" style="margin-bottom:16px; ${stale ? 'border-color:#B3261E;' : ''}" data-order-id="${order.id}">
@@ -197,12 +200,16 @@ function renderOrders() {
       <div class="coa-row"><span class="label">Shipping</span><span class="value">${hasShipping ? moneyFromCents(order.shipping_cents) : 'Awaiting quote'}</span></div>
       <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">${moneyFromCents(grandTotal)}${hasShipping ? '' : ' + shipping'}</span></div>
 
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
-        <button class="btn btn-outline admin-quick-paid" style="padding:8px 14px; font-size:.82rem;">Mark Paid</button>
-        <button class="btn btn-outline admin-quick-shipped" style="padding:8px 14px; font-size:.82rem;">Mark Shipped</button>
-        <button class="btn btn-outline admin-quick-cancel" style="padding:8px 14px; font-size:.82rem; color:#B3261E; border-color:#B3261E;">Cancel</button>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:14px;">
+        ${isPaid
+          ? '<span class="pass" style="font-size:.82rem;">Paid</span>'
+          : (!isCancelled ? '<button class="btn btn-outline admin-quick-paid" style="padding:8px 14px; font-size:.82rem;">Mark Paid</button>' : '')}
+        ${isShipped
+          ? '<span class="pass" style="font-size:.82rem;">Shipped</span>'
+          : (!isCancelled ? '<button class="btn btn-outline admin-quick-shipped" style="padding:8px 14px; font-size:.82rem;">Mark Shipped</button>' : '')}
+        ${!isCancelled && !isShipped ? '<button class="btn btn-outline admin-quick-cancel" style="padding:8px 14px; font-size:.82rem; color:#B3261E; border-color:#B3261E;">Cancel</button>' : ''}
         <button class="btn btn-outline admin-resend-confirmation" style="padding:8px 14px; font-size:.82rem;">Resend confirmation</button>
-        ${order.status === 'shipped' ? '<button class="btn btn-outline admin-resend-shipped" style="padding:8px 14px; font-size:.82rem;">Resend shipped email</button>' : ''}
+        ${isShipped ? '<button class="btn btn-outline admin-resend-shipped" style="padding:8px 14px; font-size:.82rem;">Resend shipped email</button>' : ''}
       </div>
       <span class="admin-quick-feedback" style="font-size:.85rem; display:none; margin-top:8px;"></span>
 
