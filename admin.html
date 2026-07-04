@@ -36,7 +36,7 @@
         <div id="stat-awaiting" style="font-family:'Space Grotesk',sans-serif; font-size:1.8rem; font-weight:700; color:var(--blue-deep); margin-top:4px;">—</div>
       </div>
       <div class="card" style="padding:18px 20px;">
-        <div class="code mono" style="color:var(--ink-soft);">Paid revenue today</div>
+        <div class="code mono" style="color:var(--ink-soft);">Total paid revenue</div>
         <div id="stat-revenue" style="font-family:'Space Grotesk',sans-serif; font-size:1.8rem; font-weight:700; color:var(--verified); margin-top:4px;">—</div>
       </div>
       <div class="card" style="padding:18px 20px;">
@@ -180,7 +180,10 @@ function renderOrders() {
         <div class="code mono">Order #${displayNumber}</div>
         <div style="display:flex; align-items:center; gap:10px;">
           ${stale ? '<span style="font-size:.72rem; font-weight:700; color:#B3261E; text-transform:uppercase;">Unpaid 48h+</span>' : ''}
-          <span class="pass" style="color:${statusColor(order.status)};">${order.status.replace(/_/g, ' ').toUpperCase()}</span>
+          ${isCancelled ? `<span class="pass" style="color:${statusColor('cancelled')};">CANCELLED</span>` : ''}
+          ${!isCancelled && isPaid ? '<span class="pass">Paid</span>' : ''}
+          ${!isCancelled && isShipped ? '<span class="pass">Shipped</span>' : ''}
+          ${!isCancelled && !isPaid ? `<span class="pass" style="color:${statusColor(order.status)};">${order.status.replace(/_/g, ' ').toUpperCase()}</span>` : ''}
         </div>
       </div>
 
@@ -201,12 +204,8 @@ function renderOrders() {
       <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">${moneyFromCents(grandTotal)}${hasShipping ? '' : ' + shipping'}</span></div>
 
       <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:14px;">
-        ${isPaid
-          ? '<span class="pass" style="font-size:.82rem;">Paid</span>'
-          : (!isCancelled ? '<button class="btn btn-outline admin-quick-paid" style="padding:8px 14px; font-size:.82rem;">Mark Paid</button>' : '')}
-        ${isShipped
-          ? '<span class="pass" style="font-size:.82rem;">Shipped</span>'
-          : (!isCancelled ? '<button class="btn btn-outline admin-quick-shipped" style="padding:8px 14px; font-size:.82rem;">Mark Shipped</button>' : '')}
+        ${!isPaid && !isCancelled ? '<button class="btn btn-outline admin-quick-paid" style="padding:8px 14px; font-size:.82rem;">Mark Paid</button>' : ''}
+        ${!isShipped && !isCancelled ? '<button class="btn btn-outline admin-quick-shipped" style="padding:8px 14px; font-size:.82rem;">Mark Shipped</button>' : ''}
         ${!isCancelled && !isShipped ? '<button class="btn btn-outline admin-quick-cancel" style="padding:8px 14px; font-size:.82rem; color:#B3261E; border-color:#B3261E;">Cancel</button>' : ''}
         <button class="btn btn-outline admin-resend-confirmation" style="padding:8px 14px; font-size:.82rem;">Resend confirmation</button>
         ${isShipped ? '<button class="btn btn-outline admin-resend-shipped" style="padding:8px 14px; font-size:.82rem;">Resend shipped email</button>' : ''}
@@ -366,9 +365,8 @@ function renderStats() {
   const awaiting = allOrders.filter(o => o.status === 'pending_payment' || o.status === 'awaiting_shipping_quote').length;
   document.getElementById('stat-awaiting').textContent = awaiting;
 
-  const today = new Date().toDateString();
   const revenueCents = allOrders
-    .filter(o => o.status === 'paid' && new Date(o.created_at).toDateString() === today)
+    .filter(o => o.status === 'paid' || o.status === 'shipped')
     .reduce((sum, o) => sum + o.total_cents + (o.shipping_cents || 0), 0);
   document.getElementById('stat-revenue').textContent = moneyFromCents(revenueCents);
 
