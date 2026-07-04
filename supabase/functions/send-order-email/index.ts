@@ -16,6 +16,18 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+// Matches styles.css :root variables, since email clients can't read the stylesheet.
+const COLOR = {
+  blueDeep: "#123C6B",
+  blueMid: "#2F6FA3",
+  bluePale: "#E3EEF5",
+  ink: "#16212B",
+  inkSoft: "#57697A",
+  line: "#D7E2E9",
+  verified: "#2E8B57",
+  amber: "#B8860B",
+};
+
 const RESEARCH_USE_DISCLAIMER =
   "Research use only. Products listed on this site are sold for laboratory " +
   "research purposes only. They are not drugs, dietary supplements, or " +
@@ -33,40 +45,107 @@ function buildOrderEmailHtml(order: any, items: any[], emailKind: "confirmation"
   const hasShipping = order.shipping_cents !== null && order.shipping_cents !== undefined;
   const grandTotal = order.total_cents + (hasShipping ? order.shipping_cents : 0);
 
+  const eyebrow = emailKind === "shipped" ? "Shipping update" : "Order confirmation";
   const heading =
-    emailKind === "shipped"
-      ? `Your order #${displayNumber} has shipped`
-      : `Order confirmation — #${displayNumber}`;
+    emailKind === "shipped" ? `Your order #${displayNumber} has shipped` : `Thanks for your order, #${displayNumber}`;
 
   const itemRows = items
-    .map(
-      (item) => `
+    .map((item) => {
+      const imageUrl = item.products?.image_url;
+      const imageCell = imageUrl
+        ? `<img src="${imageUrl}" width="56" height="56" alt="" style="display:block; width:56px; height:56px; object-fit:cover; border-radius:4px; border:1px solid ${COLOR.line};">`
+        : `<div style="width:56px; height:56px; border-radius:4px; background:${COLOR.bluePale}; border:1px solid ${COLOR.line};"></div>`;
+
+      return `
         <tr>
-          <td style="padding:6px 0;">${item.product_name} × ${item.quantity}</td>
-          <td style="padding:6px 0; text-align:right;">${money(item.price_cents * item.quantity)}</td>
-        </tr>`
-    )
+          <td style="padding:10px 0; border-bottom:1px solid ${COLOR.line};" width="56">${imageCell}</td>
+          <td style="padding:10px 0 10px 14px; border-bottom:1px solid ${COLOR.line}; font-family:Arial,Helvetica,sans-serif; font-size:14px; color:${COLOR.ink};">
+            ${item.product_name}<br>
+            <span style="color:${COLOR.inkSoft}; font-size:12.5px;">Qty ${item.quantity}</span>
+          </td>
+          <td style="padding:10px 0; border-bottom:1px solid ${COLOR.line}; font-family:Arial,Helvetica,sans-serif; font-size:14px; color:${COLOR.ink}; text-align:right; white-space:nowrap;" valign="top">
+            ${money(item.price_cents * item.quantity)}
+          </td>
+        </tr>`;
+    })
     .join("");
 
-  const trackingLine =
+  const trackingBlock =
     emailKind === "shipped" && order.tracking_number
-      ? `<p><strong>Tracking number:</strong> ${order.tracking_number}</p>`
+      ? `
+      <tr>
+        <td colspan="3" style="padding:14px 0 0;">
+          <table role="presentation" width="100%" style="background:${COLOR.bluePale}; border-radius:4px;">
+            <tr><td style="padding:12px 16px; font-family:Arial,Helvetica,sans-serif; font-size:13.5px; color:${COLOR.blueDeep};">
+              <strong>Tracking number:</strong> ${order.tracking_number}
+            </td></tr>
+          </table>
+        </td>
+      </tr>`
       : "";
 
+  const statusNote = hasShipping
+    ? ""
+    : `<div style="color:${COLOR.amber}; font-size:12.5px; font-weight:bold; margin-top:4px;">Shipping cost pending manual quote</div>`;
+
   return `
-    <div style="font-family:Arial,sans-serif; max-width:520px; margin:0 auto; color:#1a1a1a;">
-      <h2>${heading}</h2>
-      <table style="width:100%; border-collapse:collapse;">
-        ${itemRows}
-        <tr><td style="padding:6px 0; border-top:1px solid #ddd;">Subtotal</td><td style="padding:6px 0; text-align:right; border-top:1px solid #ddd;">${money(order.total_cents)}</td></tr>
-        <tr><td style="padding:6px 0;">Shipping</td><td style="padding:6px 0; text-align:right;">${hasShipping ? money(order.shipping_cents) : "Awaiting quote"}</td></tr>
-        <tr><td style="padding:6px 0; font-weight:bold;">Total</td><td style="padding:6px 0; text-align:right; font-weight:bold;">${money(grandTotal)}${hasShipping ? "" : " + shipping"}</td></tr>
-      </table>
-      ${trackingLine}
-      <p style="margin-top:24px; font-size:12px; color:#666; border-top:1px solid #eee; padding-top:12px;">
-        ${RESEARCH_USE_DISCLAIMER}
-      </p>
-    </div>`;
+  <div style="background:#F8FAFB; padding:32px 12px; font-family:Arial,Helvetica,sans-serif;">
+    <table role="presentation" width="100%" style="max-width:560px; margin:0 auto; background:#FFFFFF; border:1px solid ${COLOR.line}; border-radius:6px; overflow:hidden;">
+
+      <tr>
+        <td style="background:${COLOR.blueDeep}; padding:22px 28px;">
+          <span style="font-family:Arial,Helvetica,sans-serif; font-size:20px; font-weight:bold; color:#ffffff; letter-spacing:.02em;">ACIONA</span>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:30px 28px 8px;">
+          <div style="font-family:Arial,Helvetica,sans-serif; font-size:11.5px; font-weight:bold; letter-spacing:.08em; text-transform:uppercase; color:${COLOR.blueMid};">${eyebrow}</div>
+          <div style="font-family:Arial,Helvetica,sans-serif; font-size:21px; font-weight:bold; color:${COLOR.blueDeep}; margin-top:6px;">${heading}</div>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:16px 28px 4px;">
+          <table role="presentation" width="100%" style="border-collapse:collapse;">
+            ${itemRows}
+            <tr>
+              <td colspan="2" style="padding:12px 0 4px; font-family:Arial,Helvetica,sans-serif; font-size:13.5px; color:${COLOR.inkSoft};">Subtotal</td>
+              <td style="padding:12px 0 4px; font-family:Arial,Helvetica,sans-serif; font-size:13.5px; color:${COLOR.ink}; text-align:right;">${money(order.total_cents)}</td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding:4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13.5px; color:${COLOR.inkSoft};">Shipping</td>
+              <td style="padding:4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13.5px; color:${COLOR.ink}; text-align:right;">${hasShipping ? money(order.shipping_cents) : "Awaiting quote"}</td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding:10px 0 0; border-top:1px solid ${COLOR.line}; font-family:Arial,Helvetica,sans-serif; font-size:15px; font-weight:bold; color:${COLOR.blueDeep};">Total</td>
+              <td style="padding:10px 0 0; border-top:1px solid ${COLOR.line}; font-family:Arial,Helvetica,sans-serif; font-size:15px; font-weight:bold; color:${COLOR.blueDeep}; text-align:right;">${money(grandTotal)}${hasShipping ? "" : " +ship."}</td>
+            </tr>
+            ${trackingBlock}
+          </table>
+          ${statusNote}
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:26px 28px;">
+          <a href="https://acionaco.com/account.html" style="display:inline-block; background:${COLOR.blueDeep}; color:#ffffff; font-family:Arial,Helvetica,sans-serif; font-size:14px; font-weight:bold; text-decoration:none; padding:12px 22px; border-radius:3px;">View your order</a>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:20px 28px 28px; border-top:1px solid ${COLOR.line};">
+          <p style="font-family:Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6; color:${COLOR.inkSoft}; margin:0 0 12px;">
+            ${RESEARCH_USE_DISCLAIMER}
+          </p>
+          <p style="font-family:Arial,Helvetica,sans-serif; font-size:11.5px; color:${COLOR.inkSoft}; margin:0;">
+            Aciona · <a href="https://acionaco.com" style="color:${COLOR.blueMid};">acionaco.com</a>
+          </p>
+        </td>
+      </tr>
+
+    </table>
+  </div>`;
 }
 
 Deno.serve(async (req) => {
@@ -91,7 +170,7 @@ Deno.serve(async (req) => {
 
   const { data: orderRow, error: orderError } = await supabaseAdmin
     .from("orders")
-    .select("*, order_items(*)")
+    .select("*, order_items(*, products(image_url))")
     .eq("id", order.id)
     .single();
 
