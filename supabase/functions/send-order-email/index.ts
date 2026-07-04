@@ -3,12 +3,15 @@
 // CI/CD link between this file and the deployed function. If you edit this
 // file, you must manually re-paste it into the dashboard to deploy the change.
 //
-// Triggered by a Supabase Database Webhook on `orders` INSERT (see
-// docs/DATABASE_SCHEMA.md / sql-editor/migrations for the webhook setup).
-// Written generically around order id + status so a future webhook on
-// `orders` UPDATE (status -> 'shipped') can reuse this same function for a
-// shipping-notification email — only the INSERT/confirmation path is wired
-// up for now.
+// Two ways this function is called, each with its own authorization:
+// 1. Supabase Database Webhook on `orders` INSERT/UPDATE — trusted only if
+//    the Authorization header is exactly the project's service-role key
+//    (what Supabase's own webhook sends automatically).
+// 2. Manual "resend" from admin.html ({action:'resend', order_id, kind}) —
+//    trusted only if the caller's own access token resolves to a
+//    profiles.is_admin = true account. This exists so the resend button
+//    can't be used by an arbitrary logged-in customer to spam another
+//    customer's inbox with their own order details.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -148,30 +151,13 @@ function buildOrderEmailHtml(order: any, items: any[], emailKind: "confirmation"
   </div>`;
 }
 
-Deno.serve(async (req) => {
-  let payload: any;
-  try {
-    payload = await req.json();
-  } catch {
-    return new Response("invalid json", { status: 400 });
-  }
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-  const order = payload.record;
-  if (!order?.id) return new Response("missing order id", { status: 400 });
-
-  // v1 is wired to INSERT only. Kept generic for a future 'shipped' webhook.
-  const emailKind: "confirmation" | "shipped" =
-    payload.type === "UPDATE" && order.status === "shipped" ? "shipped" : "confirmation";
-  if (payload.type === "UPDATE" && order.status !== "shipped") {
-    return new Response("no-op", { status: 200 });
-  }
-
-  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
+async function sendOrderEmail(orderId: string, emailKind: "confirmation" | "shipped"): Promise<Response> {
   const { data: orderRow, error: orderError } = await supabaseAdmin
     .from("orders")
     .select("*, order_items(*, products(image_url))")
-    .eq("id", order.id)
+    .eq("id", orderId)
     .single();
 
   if (orderError || !orderRow) {
@@ -212,4 +198,63 @@ Deno.serve(async (req) => {
   }
 
   return new Response("ok", { status: 200 });
+}
+
+Deno.serve(async (req) => {
+  let payload: any;
+  try {
+    payload = await req.json();
+  } catch {
+    return new Response("invalid json", { status: 400 });
+  }
+
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const bearerToken = authHeader.replace(/^Bearer\s+/i, "");
+
+  // Manual resend path: caller must be a logged-in admin, verified server-side.
+  if (payload.action === "resend") {
+    const { order_id, kind } = payload;
+    if (!order_id || (kind !== "confirmation" && kind !== "shipped")) {
+      return new Response("invalid resend request", { status: 400 });
+    }
+
+    const { data: callerData, error: callerError } = await supabaseAdmin.auth.getUser(bearerToken);
+    if (callerError || !callerData?.user) {
+      return new Response("unauthorized", { status: 401 });
+    }
+
+    const { data: callerProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", callerData.user.id)
+      .maybeSingle();
+
+    if (!callerProfile?.is_admin) {
+      return new Response("forbidden", { status: 403 });
+    }
+
+    return sendOrderEmail(order_id, kind);
+  }
+
+  // Database Webhook path: only trusted if it's really Supabase's own webhook,
+  // which authenticates with the service-role key — not just any valid JWT.
+  if (bearerToken !== SUPABASE_SERVICE_ROLE_KEY) {
+    return new Response("forbidden", { status: 403 });
+  }
+
+  const order = payload.record;
+  if (!order?.id) return new Response("missing order id", { status: 400 });
+
+  // INSERT always sends a confirmation. UPDATE only sends a shipped email on
+  // the actual transition into 'shipped' (old_record.status was something
+  // else) — otherwise editing an already-shipped order later (e.g. fixing a
+  // typo in the tracking number) would resend the shipped email every time.
+  const becameShipped =
+    payload.type === "UPDATE" && order.status === "shipped" && payload.old_record?.status !== "shipped";
+
+  if (payload.type === "UPDATE" && !becameShipped) {
+    return new Response("no-op", { status: 200 });
+  }
+
+  return sendOrderEmail(order.id, becameShipped ? "shipped" : "confirmation");
 });
