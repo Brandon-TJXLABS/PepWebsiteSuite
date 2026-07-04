@@ -82,12 +82,40 @@
   </div>
 </section>
 
-<section style="padding-top:40px;">
+<section style="padding-top:40px; padding-bottom:40px;">
   <div class="wrap">
     <div class="section-head"><div class="eyebrow">Order history</div></div>
     <div id="orders-container">
       <p style="color:var(--ink-soft);">Loading orders…</p>
     </div>
+  </div>
+</section>
+
+<section class="alt" style="padding-top:40px; padding-bottom:40px;">
+  <div class="wrap">
+    <div class="section-head" style="margin-bottom:20px;"><div class="eyebrow">Security</div></div>
+    <form id="password-form" class="contact-form" style="max-width:420px;">
+      <div class="field">
+        <label for="new-password">New password</label>
+        <input type="password" id="new-password" minlength="6" required>
+      </div>
+      <div class="field">
+        <label for="confirm-password">Confirm new password</label>
+        <input type="password" id="confirm-password" minlength="6" required>
+      </div>
+      <div id="password-error" style="color:#B3261E; font-size:.85rem; display:none;"></div>
+      <div id="password-success" style="color:var(--verified); font-size:.85rem; display:none;"></div>
+      <button type="submit" class="btn btn-outline" style="justify-self:start;">Change password</button>
+    </form>
+  </div>
+</section>
+
+<section style="padding-top:40px; padding-bottom:40px;">
+  <div class="wrap">
+    <div class="section-head" style="margin-bottom:20px;"><div class="eyebrow">Danger zone</div></div>
+    <p style="color:var(--ink-soft); font-size:.9rem; max-width:60ch;">Deleting your account is permanent. This is only available for accounts with no order history — if you've placed an order, contact support to close your account instead.</p>
+    <div id="delete-account-error" style="color:#B3261E; font-size:.85rem; display:none; margin-top:10px;"></div>
+    <button class="btn btn-outline" id="delete-account-btn" style="margin-top:14px; color:#B3261E; border-color:#B3261E;">Delete my account</button>
   </div>
 </section>
 
@@ -311,6 +339,64 @@ async function acionaReorder(orderId) {
   }
   window.location.href = 'cart.html';
 }
+
+document.getElementById('password-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const newPassword = document.getElementById('new-password').value;
+  const confirmPassword = document.getElementById('confirm-password').value;
+  const errorBox = document.getElementById('password-error');
+  const successBox = document.getElementById('password-success');
+  successBox.style.display = 'none';
+
+  if (newPassword !== confirmPassword) {
+    errorBox.textContent = 'Passwords do not match.';
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+  if (error) {
+    errorBox.textContent = error.message;
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  errorBox.style.display = 'none';
+  successBox.textContent = 'Password updated.';
+  successBox.style.display = 'block';
+  document.getElementById('password-form').reset();
+});
+
+document.getElementById('delete-account-btn').addEventListener('click', async () => {
+  if (!confirm('Permanently delete your account? This cannot be undone.')) return;
+
+  const errorBox = document.getElementById('delete-account-error');
+  errorBox.style.display = 'none';
+
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+
+  try {
+    const resp = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    const result = await resp.json();
+
+    if (!resp.ok) {
+      errorBox.textContent = result.error || 'Could not delete account.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    await supabaseClient.auth.signOut();
+    window.location.href = 'index.html';
+  } catch (err) {
+    errorBox.textContent = 'Could not delete account. Please try again.';
+    errorBox.style.display = 'block';
+    console.error(err);
+  }
+});
 
 loadAccount();
 </script>
