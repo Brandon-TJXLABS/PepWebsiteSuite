@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Checkout — PureVial</title>
+<title>Checkout — Aciona</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header class="site">
   <nav class="nav">
-    <a href="index.html" class="brand"><span class="brand-mark"></span> PureVial</a>
-    <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
+    <a href="index.html" class="brand"><span class="brand-mark"></span> Aciona</a>
+    <button class="nav-toggle" onclick="acionaToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
       <li><a href="index.html">Products</a></li>
       <li><a href="about.html">About</a></li>
@@ -129,10 +129,10 @@ let currentShipping = { cents: 0, requiresQuote: false, label: '' };
 let currentProfile = null;
 
 async function loadOrderSummary() {
-  const user = await purevialRequireAuth();
+  const user = await acionaRequireAuth();
   if (!user) return;
 
-  if (typeof purevialTrack === 'function') purevialTrack('checkout_start');
+  if (typeof acionaTrack === 'function') acionaTrack('checkout_start');
 
   // Load saved shipping address first — checkout can't proceed without one
   const { data: profile } = await supabaseClient
@@ -159,7 +159,7 @@ async function loadOrderSummary() {
     <div style="margin-top:8px;"><a href="account.html" style="font-size:.82rem;">Change shipping address</a></div>
   `;
 
-  currentCart = await purevialGetCart();
+  currentCart = await acionaGetCart();
   const summaryEl = document.getElementById('order-summary');
 
   if (currentCart.length === 0) {
@@ -169,7 +169,7 @@ async function loadOrderSummary() {
 
   currentSubtotal = currentCart.reduce((sum, item) => sum + item.products.price_cents * item.quantity, 0);
   currentVials = currentCart.reduce((sum, item) => sum + item.quantity, 0);
-  currentShipping = purevialCalculateShipping(currentVials, currentSubtotal);
+  currentShipping = acionaCalculateShipping(currentVials, currentSubtotal);
 
   const shippingLine = currentShipping.requiresQuote
     ? `<div class="coa-row"><span class="label">Shipping</span><span class="value">Quote required</span></div>`
@@ -242,7 +242,7 @@ document.getElementById('place-order-btn').addEventListener('click', async () =>
   const selected = document.querySelector('input[name="payment_method"]:checked');
   if (!selected) return;
 
-  const user = await purevialGetUser();
+  const user = await acionaGetUser();
   const btn = document.getElementById('place-order-btn');
   btn.disabled = true;
   btn.textContent = 'Placing order…';
@@ -269,20 +269,20 @@ document.getElementById('place-order-btn').addEventListener('click', async () =>
 
   await createOrderItemsAndDecrementStock(order.id);
 
-  if (typeof purevialTrack === 'function') {
-    purevialTrack('order_placed', { metadata: { total_cents: currentSubtotal, shipping_cents: currentShipping.cents, payment_method: selected.value } });
+  if (typeof acionaTrack === 'function') {
+    acionaTrack('order_placed', { metadata: { total_cents: currentSubtotal, shipping_cents: currentShipping.cents, payment_method: selected.value } });
   }
 
-  await purevialClearCart();
+  await acionaClearCart();
 
   document.getElementById('confirmed-order-number').textContent = order.order_number || order.id.slice(0, 8);
   document.getElementById('payment-section').style.display = 'none';
   document.getElementById('order-confirmation').style.display = 'block';
-  purevialUpdateCartCount();
+  acionaUpdateCartCount();
 });
 
 document.getElementById('request-quote-btn').addEventListener('click', async () => {
-  const user = await purevialGetUser();
+  const user = await acionaGetUser();
   const btn = document.getElementById('request-quote-btn');
   btn.disabled = true;
   btn.textContent = 'Submitting…';
@@ -309,18 +309,18 @@ document.getElementById('request-quote-btn').addEventListener('click', async () 
 
   await createOrderItemsAndDecrementStock(order.id);
 
-  if (typeof purevialTrack === 'function') {
-    purevialTrack('order_placed', { metadata: { total_cents: currentSubtotal, awaiting_quote: true } });
+  if (typeof acionaTrack === 'function') {
+    acionaTrack('order_placed', { metadata: { total_cents: currentSubtotal, awaiting_quote: true } });
   }
 
-  await purevialClearCart();
+  await acionaClearCart();
 
   document.getElementById('confirmed-order-number').textContent = order.order_number || order.id.slice(0, 8);
   document.getElementById('confirmation-detail').textContent =
     'We\'ll be in touch shortly with a shipping quote and payment instructions, using the contact details on your account. Check your account for order status updates.';
   document.getElementById('quote-section').style.display = 'none';
   document.getElementById('order-confirmation').style.display = 'block';
-  purevialUpdateCartCount();
+  acionaUpdateCartCount();
 });
 
 loadOrderSummary();

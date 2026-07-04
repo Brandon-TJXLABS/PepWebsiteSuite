@@ -1,4 +1,4 @@
-/* PureVial — shared stylesheet */
+/* Aciona — shared stylesheet */
 
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
@@ -145,6 +145,17 @@ a.brand:hover{text-decoration:none; opacity:.85;}
   display:inline-flex; align-items:center; gap:6px;
 }
 .pass::before{content:'✓'; font-size:.9em;}
+
+/* ---------- Research-use banner (product cards) ---------- */
+.research-banner{
+  font-family:'IBM Plex Sans', sans-serif;
+  font-size:.7rem; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase;
+  color:#fff; background:#C0392B;
+  border-radius:var(--radius);
+  padding:6px 10px; margin:0 0 12px;
+  text-align:center;
+}
 
 /* ---------- Section shell ---------- */
 section{padding:72px 0;}

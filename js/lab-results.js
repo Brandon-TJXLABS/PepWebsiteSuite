@@ -1,7 +1,7 @@
 // Loads lab results from Supabase and renders them into the results table
 // on lab-results.html
 
-function purevialFormatDate(dateStr) {
+function acionaFormatDate(dateStr) {
   const date = new Date(dateStr + 'T00:00:00');
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -9,7 +9,7 @@ function purevialFormatDate(dateStr) {
   return `${day}/${month}/${year}`;
 }
 
-async function purevialLoadLabResults() {
+async function acionaLoadLabResults() {
   const tbody = document.getElementById('lab-results-body');
   if (!tbody) return;
 
@@ -33,7 +33,7 @@ async function purevialLoadLabResults() {
     <tr>
       <td>${r.product_name}</td>
       <td class="mono">${r.batch_code}</td>
-      <td class="mono">${purevialFormatDate(r.test_date)}</td>
+      <td class="mono">${acionaFormatDate(r.test_date)}</td>
       <td class="mono">${r.purity || '—'}</td>
       <td class="mono">${r.endotoxin || '—'}</td>
       <td><span class="pass">${r.result}</span></td>
@@ -45,4 +45,4 @@ async function purevialLoadLabResults() {
   `).join('');
 }
 
-document.addEventListener('DOMContentLoaded', purevialLoadLabResults);
+document.addEventListener('DOMContentLoaded', acionaLoadLabResults);

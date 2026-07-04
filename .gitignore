@@ -1,0 +1,6 @@
+# Supabase SQL migrations — run manually in the SQL Editor, never deployed to
+# GitHub Pages (and never public).
+sql-editor/
+
+# Local reference material (screenshots etc.), not part of the live site.
+Example images/

@@ -6,7 +6,7 @@
 
 const FREE_SHIPPING_THRESHOLD_CENTS = 35000; // $350.00
 
-function purevialCalculateShipping(totalVials, subtotalCents) {
+function acionaCalculateShipping(totalVials, subtotalCents) {
   if (subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS) {
     return { cents: 0, requiresQuote: false, label: 'Free shipping' };
   }

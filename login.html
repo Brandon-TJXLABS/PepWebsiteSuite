@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Log In — PureVial</title>
+<title>Log In — Aciona</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header class="site">
   <nav class="nav">
-    <a href="index.html" class="brand"><span class="brand-mark"></span> PureVial</a>
-    <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
+    <a href="index.html" class="brand"><span class="brand-mark"></span> Aciona</a>
+    <button class="nav-toggle" onclick="acionaToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
       <li><a href="index.html">Products</a></li>
       <li><a href="about.html">About</a></li>
@@ -74,7 +74,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   const password = document.getElementById('password').value;
   const errorBox = document.getElementById('login-error');
 
-  const { error } = await purevialSignIn(email, password);
+  const { error } = await acionaSignIn(email, password);
   if (error) {
     errorBox.textContent = error.message;
     errorBox.style.display = 'block';

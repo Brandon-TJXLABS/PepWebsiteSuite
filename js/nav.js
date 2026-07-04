@@ -1,5 +1,5 @@
 // Mobile nav hamburger toggle — shared across all pages
-function purevialToggleNav() {
+function acionaToggleNav() {
   document.getElementById('nav-links').classList.toggle('nav-open');
 }
 

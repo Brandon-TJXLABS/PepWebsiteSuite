@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your Cart — PureVial</title>
+<title>Your Cart — Aciona</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header class="site">
   <nav class="nav">
-    <a href="index.html" class="brand"><span class="brand-mark"></span> PureVial</a>
-    <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
+    <a href="index.html" class="brand"><span class="brand-mark"></span> Aciona</a>
+    <button class="nav-toggle" onclick="acionaToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
       <li><a href="index.html">Products</a></li>
       <li><a href="about.html">About</a></li>
@@ -57,11 +57,11 @@
 <script src="js/shipping.js"></script>
 <script>
 async function renderCart() {
-  const user = await purevialRequireAuth();
+  const user = await acionaRequireAuth();
   if (!user) return;
 
   const container = document.getElementById('cart-container');
-  const cart = await purevialGetCart();
+  const cart = await acionaGetCart();
 
   if (cart.length === 0) {
     container.innerHTML = '<p style="color:var(--ink-soft);">Your cart is empty. <a href="index.html">Browse products</a>.</p>';
@@ -94,7 +94,7 @@ async function renderCart() {
     `;
   }).join('');
 
-  const shipping = purevialCalculateShipping(totalVials, subtotal);
+  const shipping = acionaCalculateShipping(totalVials, subtotal);
   const shippingNote = document.getElementById('cart-shipping-note');
 
   document.getElementById('cart-summary').style.display = 'flex';
@@ -115,15 +115,15 @@ async function renderCart() {
 }
 
 async function changeQty(cartItemId, newQty) {
-  await purevialUpdateCartQuantity(cartItemId, newQty);
+  await acionaUpdateCartQuantity(cartItemId, newQty);
   renderCart();
-  purevialUpdateCartCount();
+  acionaUpdateCartCount();
 }
 
 async function removeItem(cartItemId) {
-  await purevialRemoveFromCart(cartItemId);
+  await acionaRemoveFromCart(cartItemId);
   renderCart();
-  purevialUpdateCartCount();
+  acionaUpdateCartCount();
 }
 
 renderCart();

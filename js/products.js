@@ -23,11 +23,11 @@ const PLACEHOLDER_IMAGE_SVG = `data:image/svg+xml;utf8,` + encodeURIComponent(`
 
 const LOW_STOCK_THRESHOLD = 5;
 
-let purevialProducts = [];
+let acionaProducts = [];
 
 // Works out stock status whether or not the stock_quantity migration has
 // been run yet, so this never breaks against an older database.
-function purevialStockStatus(p) {
+function acionaStockStatus(p) {
   const qty = (p.stock_quantity !== undefined && p.stock_quantity !== null)
     ? p.stock_quantity
     : (p.in_stock === false ? 0 : null); // null = unknown/unlimited, treat as in stock
@@ -37,7 +37,7 @@ function purevialStockStatus(p) {
   return { qty, outOfStock, lowStock };
 }
 
-async function purevialLoadProducts() {
+async function acionaLoadProducts() {
   const grid = document.getElementById('products-grid');
   if (!grid) return;
 
@@ -53,18 +53,19 @@ async function purevialLoadProducts() {
     return;
   }
 
-  purevialProducts = products;
+  acionaProducts = products;
 
   grid.innerHTML = products.map(p => {
-    const { qty, outOfStock, lowStock } = purevialStockStatus(p);
+    const { qty, outOfStock, lowStock } = acionaStockStatus(p);
     return `
-    <div class="card clickable" onclick="purevialOpenModal('${p.id}')">
+    <div class="card clickable" onclick="acionaOpenModal('${p.id}')">
       ${outOfStock ? `<div class="stock-badge">Out of stock</div>` : ''}
       ${lowStock ? `<div class="stock-badge low">Only ${qty} left</div>` : ''}
       <div class="card-image">
         <img class="card-image-bg" src="${p.image_url || PLACEHOLDER_IMAGE_SVG}" alt="" aria-hidden="true" loading="lazy">
         <img class="card-image-fg" src="${p.image_url || PLACEHOLDER_IMAGE_SVG}" alt="${p.name}" loading="lazy">
       </div>
+      ${p.show_research_banner !== false ? `<div class="research-banner">⚠ For research use only</div>` : ''}
       <div class="code mono">${p.sku}</div>
       <h3>${p.name}</h3>
       <div class="desc">${p.description || ''}</div>
@@ -75,7 +76,7 @@ async function purevialLoadProducts() {
       ${outOfStock
         ? `<button class="btn btn-outline" style="width:100%; margin-top:14px; justify-content:center;" disabled onclick="event.stopPropagation();">Out of stock</button>
            ${p.restock_date ? `<div class="restock-note">Back in stock ${formatRestockDate(p.restock_date)}</div>` : ''}`
-        : `<button class="btn btn-primary" style="width:100%; margin-top:14px; justify-content:center;" onclick="event.stopPropagation(); purevialAddToCart('${p.id}')">Add to cart</button>`
+        : `<button class="btn btn-primary" style="width:100%; margin-top:14px; justify-content:center;" onclick="event.stopPropagation(); acionaAddToCart('${p.id}')">Add to cart</button>`
       }
       ${p.wiki_url ? `<a href="${p.wiki_url}" onclick="event.stopPropagation();" class="coa-link" style="display:block; text-align:center; margin-top:10px; font-size:.82rem;">Research reference →</a>` : ''}
     </div>
@@ -83,11 +84,11 @@ async function purevialLoadProducts() {
   }).join('');
 }
 
-function purevialOpenModal(productId) {
-  const p = purevialProducts.find(item => item.id === productId);
+function acionaOpenModal(productId) {
+  const p = acionaProducts.find(item => item.id === productId);
   if (!p) return;
 
-  const { qty, outOfStock, lowStock } = purevialStockStatus(p);
+  const { qty, outOfStock, lowStock } = acionaStockStatus(p);
   const modal = document.getElementById('product-modal');
   const body = document.getElementById('product-modal-body');
 
@@ -113,7 +114,7 @@ function purevialOpenModal(productId) {
       ${outOfStock
         ? `<button class="btn btn-outline" style="width:100%; margin-top:20px; justify-content:center;" disabled>Out of stock</button>
            ${p.restock_date ? `<div class="restock-note">Back in stock ${formatRestockDate(p.restock_date)}</div>` : ''}`
-        : `<button class="btn btn-primary" style="width:100%; margin-top:20px; justify-content:center;" onclick="purevialAddToCart('${p.id}')">Add to cart</button>`
+        : `<button class="btn btn-primary" style="width:100%; margin-top:20px; justify-content:center;" onclick="acionaAddToCart('${p.id}')">Add to cart</button>`
       }
     </div>
   `;
@@ -122,13 +123,13 @@ function purevialOpenModal(productId) {
   document.body.style.overflow = 'hidden';
 }
 
-function purevialCloseModal() {
+function acionaCloseModal() {
   document.getElementById('product-modal').classList.remove('open');
   document.body.style.overflow = '';
 }
 
-document.addEventListener('DOMContentLoaded', purevialLoadProducts);
+document.addEventListener('DOMContentLoaded', acionaLoadProducts);
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') purevialCloseModal();
+  if (e.key === 'Escape') acionaCloseModal();
 });

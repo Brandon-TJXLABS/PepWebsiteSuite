@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign Up — PureVial</title>
+<title>Sign Up — Aciona</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header class="site">
   <nav class="nav">
-    <a href="index.html" class="brand"><span class="brand-mark"></span> PureVial</a>
-    <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
+    <a href="index.html" class="brand"><span class="brand-mark"></span> Aciona</a>
+    <button class="nav-toggle" onclick="acionaToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
       <li><a href="index.html">Products</a></li>
       <li><a href="about.html">About</a></li>
@@ -26,7 +26,7 @@
 <section class="hero" style="padding-bottom:56px;">
   <div class="wrap" style="max-width:440px;">
     <div class="eyebrow">Create an account</div>
-    <h1 style="font-size:2.1rem;">Sign up for PureVial</h1>
+    <h1 style="font-size:2.1rem;">Sign up for Aciona</h1>
 
     <form id="signup-form" class="contact-form" style="margin-top:24px;">
       <div class="field">
@@ -78,7 +78,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
   const errorBox = document.getElementById('signup-error');
   const successBox = document.getElementById('signup-success');
 
-  const { error } = await purevialSignUp(email, password, fullName);
+  const { error } = await acionaSignUp(email, password, fullName);
   if (error) {
     errorBox.textContent = error.message;
     errorBox.style.display = 'block';

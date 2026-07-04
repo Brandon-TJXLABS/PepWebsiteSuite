@@ -4,13 +4,13 @@
 // every internal page click within the same visit.
 
 (function () {
-  if (sessionStorage.getItem('purevial_gate_accepted') === 'true') return;
+  if (sessionStorage.getItem('aciona_gate_accepted') === 'true') return;
 
   var overlay = document.createElement('div');
   overlay.id = 'age-gate-overlay';
   overlay.innerHTML =
     '<div class="age-gate-panel">' +
-      '<div class="brand" style="justify-content:center; margin-bottom:18px;"><span class="brand-mark"></span> PureVial</div>' +
+      '<div class="brand" style="justify-content:center; margin-bottom:18px;"><span class="brand-mark"></span> Aciona</div>' +
       '<h2>Age &amp; Research Use Verification</h2>' +
       '<p>Before entering, please confirm the following:</p>' +
       '<label class="age-gate-check">' +
@@ -23,7 +23,7 @@
       '</label>' +
       '<label class="age-gate-check">' +
         '<input type="checkbox" id="gate-terms">' +
-        '<span>I have read and agree to PureVial\'s <a href="terms.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">Privacy Policy</a>, and accept all associated liability</span>' +
+        '<span>I have read and agree to Aciona\'s <a href="terms.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">Privacy Policy</a>, and accept all associated liability</span>' +
       '</label>' +
       '<div class="age-gate-actions">' +
         '<button id="gate-enter" class="btn btn-primary" disabled>Enter Site</button>' +
@@ -47,7 +47,7 @@
   termsBox.addEventListener('change', updateButton);
 
   enterBtn.addEventListener('click', function () {
-    sessionStorage.setItem('purevial_gate_accepted', 'true');
+    sessionStorage.setItem('aciona_gate_accepted', 'true');
     overlay.remove();
     document.body.style.overflow = '';
   });

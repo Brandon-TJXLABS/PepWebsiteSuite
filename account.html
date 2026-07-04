@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your Account — PureVial</title>
+<title>Your Account — Aciona</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header class="site">
   <nav class="nav">
-    <a href="index.html" class="brand"><span class="brand-mark"></span> PureVial</a>
-    <button class="nav-toggle" onclick="purevialToggleNav()" aria-label="Menu">☰</button>
+    <a href="index.html" class="brand"><span class="brand-mark"></span> Aciona</a>
+    <button class="nav-toggle" onclick="acionaToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
       <li><a href="index.html">Products</a></li>
       <li><a href="about.html">About</a></li>
@@ -96,16 +96,16 @@
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
 <script>
-document.getElementById('logout-btn').addEventListener('click', purevialSignOut);
+document.getElementById('logout-btn').addEventListener('click', acionaSignOut);
 
-let purevialCurrentUser = null;
-let purevialOrders = [];
+let acionaCurrentUser = null;
+let acionaOrders = [];
 let currentProfileData = null;
 
 async function loadAccount() {
-  const user = await purevialRequireAuth();
+  const user = await acionaRequireAuth();
   if (!user) return;
-  purevialCurrentUser = user;
+  acionaCurrentUser = user;
 
   document.getElementById('account-heading').textContent =
     (user.user_metadata && user.user_metadata.full_name) ? user.user_metadata.full_name : 'Your account';
@@ -175,7 +175,7 @@ document.getElementById('address-cancel-btn').addEventListener('click', () => {
 
 document.getElementById('address-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (!purevialCurrentUser) return;
+  if (!acionaCurrentUser) return;
 
   const updates = {
     phone: document.getElementById('phone').value,
@@ -190,7 +190,7 @@ document.getElementById('address-form').addEventListener('submit', async (e) => 
   const { error } = await supabaseClient
     .from('profiles')
     .update(updates)
-    .eq('id', purevialCurrentUser.id);
+    .eq('id', acionaCurrentUser.id);
 
   if (!error) {
     currentProfileData = { ...currentProfileData, ...updates, full_name: currentProfileData ? currentProfileData.full_name : null };
@@ -222,7 +222,7 @@ async function loadOrders() {
     return;
   }
 
-  purevialOrders = orders;
+  acionaOrders = orders;
 
   if (orders.length === 0) {
     container.innerHTML = '<p style="color:var(--ink-soft);">No orders yet. <a href="index.html">Browse products</a>.</p>';
@@ -255,20 +255,20 @@ async function loadOrders() {
         <div style="font-size:.8rem; color:var(--ink-soft);">
           Payment: ${paymentLabel} · ${new Date(order.created_at).toLocaleDateString('en-AU')}
         </div>
-        <button class="btn btn-outline" style="padding:8px 16px; font-size:.85rem;" onclick="purevialReorder('${order.id}')">Reorder</button>
+        <button class="btn btn-outline" style="padding:8px 16px; font-size:.85rem;" onclick="acionaReorder('${order.id}')">Reorder</button>
       </div>
     </div>
   `;
   }).join('');
 }
 
-async function purevialReorder(orderId) {
-  const order = purevialOrders.find(o => o.id === orderId);
+async function acionaReorder(orderId) {
+  const order = acionaOrders.find(o => o.id === orderId);
   if (!order) return;
 
   for (const item of order.order_items) {
     if (item.product_id) {
-      await purevialAddToCart(item.product_id, item.quantity);
+      await acionaAddToCart(item.product_id, item.quantity);
     }
   }
   window.location.href = 'cart.html';

@@ -1,14 +1,14 @@
 // Cart helpers — cart is stored in Supabase per logged-in user
 
-async function purevialAddToCart(productId, quantity = 1) {
-  const user = await purevialGetUser();
+async function acionaAddToCart(productId, quantity = 1) {
+  const user = await acionaGetUser();
   if (!user) {
     window.location.href = 'login.html';
     return;
   }
 
-  if (typeof purevialTrack === 'function') {
-    purevialTrack('add_to_cart', { productId });
+  if (typeof acionaTrack === 'function') {
+    acionaTrack('add_to_cart', { productId });
   }
 
   // Check if this product is already in the cart, bump quantity if so
@@ -30,11 +30,11 @@ async function purevialAddToCart(productId, quantity = 1) {
       .insert({ user_id: user.id, product_id: productId, quantity });
   }
 
-  purevialUpdateCartCount();
+  acionaUpdateCartCount();
 }
 
-async function purevialGetCart() {
-  const user = await purevialGetUser();
+async function acionaGetCart() {
+  const user = await acionaGetUser();
   if (!user) return [];
 
   const { data, error } = await supabaseClient
@@ -49,31 +49,31 @@ async function purevialGetCart() {
   return data;
 }
 
-async function purevialRemoveFromCart(cartItemId) {
+async function acionaRemoveFromCart(cartItemId) {
   await supabaseClient.from('cart_items').delete().eq('id', cartItemId);
 }
 
-async function purevialUpdateCartQuantity(cartItemId, quantity) {
+async function acionaUpdateCartQuantity(cartItemId, quantity) {
   if (quantity < 1) {
-    await purevialRemoveFromCart(cartItemId);
+    await acionaRemoveFromCart(cartItemId);
     return;
   }
   await supabaseClient.from('cart_items').update({ quantity }).eq('id', cartItemId);
 }
 
-async function purevialClearCart() {
-  const user = await purevialGetUser();
+async function acionaClearCart() {
+  const user = await acionaGetUser();
   if (!user) return;
   await supabaseClient.from('cart_items').delete().eq('user_id', user.id);
 }
 
 // Updates a small badge in the nav showing item count, if present (id="cart-count")
-async function purevialUpdateCartCount() {
+async function acionaUpdateCartCount() {
   const badge = document.getElementById('cart-count');
   if (!badge) return;
-  const cart = await purevialGetCart();
+  const cart = await acionaGetCart();
   const count = cart.reduce((sum, item) => sum + item.quantity, 0);
   badge.textContent = count > 0 ? count : '';
 }
 
-document.addEventListener('DOMContentLoaded', purevialUpdateCartCount);
+document.addEventListener('DOMContentLoaded', acionaUpdateCartCount);
