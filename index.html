@@ -65,6 +65,22 @@
       <p>Each listing links to its own Certificate of Analysis. Replace this catalog with your live product data and pricing.</p>
     </div>
 
+    <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px;">
+      <div class="field" style="margin:0; flex:1; min-width:220px;">
+        <label for="product-search">Search</label>
+        <input type="text" id="product-search" placeholder="Search products…" oninput="acionaApplyFiltersAndSort()">
+      </div>
+      <div class="field" style="margin:0; min-width:200px;">
+        <label for="product-sort">Sort by</label>
+        <select id="product-sort" onchange="acionaApplyFiltersAndSort()">
+          <option value="name">Name (A–Z)</option>
+          <option value="price-asc">Price (low to high)</option>
+          <option value="price-desc">Price (high to low)</option>
+          <option value="purity">Purity</option>
+        </select>
+      </div>
+    </div>
+
     <div class="grid-products" id="products-grid">
       <p style="color:var(--ink-soft);">Loading products…</p>
     </div>

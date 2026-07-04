@@ -54,6 +54,44 @@ async function acionaLoadProducts() {
   }
 
   acionaProducts = products;
+  acionaRenderProductGrid(products);
+}
+
+// Applies the search box + sort select (if present on the page) to the
+// already-fetched acionaProducts array and re-renders — no extra query,
+// since the catalog is small enough to filter/sort entirely client-side.
+function acionaApplyFiltersAndSort() {
+  const searchEl = document.getElementById('product-search');
+  const sortEl = document.getElementById('product-sort');
+  const search = searchEl ? searchEl.value.trim().toLowerCase() : '';
+  const sortBy = sortEl ? sortEl.value : 'name';
+
+  let filtered = acionaProducts;
+  if (search) {
+    filtered = filtered.filter(p =>
+      (p.name || '').toLowerCase().includes(search) ||
+      (p.description || '').toLowerCase().includes(search) ||
+      (p.sku || '').toLowerCase().includes(search));
+  }
+
+  filtered = [...filtered].sort((a, b) => {
+    if (sortBy === 'price-asc') return a.price_cents - b.price_cents;
+    if (sortBy === 'price-desc') return b.price_cents - a.price_cents;
+    if (sortBy === 'purity') return (b.purity || '').localeCompare(a.purity || '');
+    return a.name.localeCompare(b.name);
+  });
+
+  acionaRenderProductGrid(filtered);
+}
+
+function acionaRenderProductGrid(products) {
+  const grid = document.getElementById('products-grid');
+  if (!grid) return;
+
+  if (products.length === 0) {
+    grid.innerHTML = '<p style="color:var(--ink-soft);">No products match your search.</p>';
+    return;
+  }
 
   grid.innerHTML = products.map(p => {
     const { qty, outOfStock, lowStock } = acionaStockStatus(p);
@@ -114,13 +152,23 @@ function acionaOpenModal(productId) {
       ${outOfStock
         ? `<button class="btn btn-outline" style="width:100%; margin-top:20px; justify-content:center;" disabled>Out of stock</button>
            ${p.restock_date ? `<div class="restock-note">Back in stock ${formatRestockDate(p.restock_date)}</div>` : ''}`
-        : `<button class="btn btn-primary" style="width:100%; margin-top:20px; justify-content:center;" onclick="acionaAddToCart('${p.id}')">Add to cart</button>`
+        : `<div class="field" style="max-width:120px; margin-top:20px;">
+             <label for="modal-qty">Quantity</label>
+             <input type="number" id="modal-qty" min="1" value="1">
+           </div>
+           <button class="btn btn-primary" style="width:100%; margin-top:12px; justify-content:center;" onclick="acionaAddToCartFromModal('${p.id}')">Add to cart</button>`
       }
     </div>
   `;
 
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+function acionaAddToCartFromModal(productId) {
+  const qtyInput = document.getElementById('modal-qty');
+  const quantity = qtyInput ? Math.max(1, parseInt(qtyInput.value, 10) || 1) : 1;
+  acionaAddToCart(productId, quantity);
 }
 
 function acionaCloseModal() {
