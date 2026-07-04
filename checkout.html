@@ -177,7 +177,8 @@ async function loadOrderSummary() {
   // in the DB, but guard anyway.
   const overStock = currentCart.filter(item =>
     item.products.stock_quantity != null && item.quantity > item.products.stock_quantity);
-  checkoutBlocked = overStock.length > 0;
+  const unavailable = currentCart.filter(item => item.products.active === false);
+  checkoutBlocked = overStock.length > 0 || unavailable.length > 0;
 
   const shippingLine = currentShipping.requiresQuote
     ? `<div class="coa-row"><span class="label">Shipping</span><span class="value">Quote required</span></div>`
@@ -187,17 +188,22 @@ async function loadOrderSummary() {
     ? `<div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${(currentSubtotal / 100).toFixed(2)} USD + shipping</span></div>`
     : `<div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${((currentSubtotal + currentShipping.cents) / 100).toFixed(2)} USD</span></div>`;
 
+  const warningLines = [
+    ...overStock.map(i => `${i.products.name}: only ${i.products.stock_quantity} left (cart has ${i.quantity})`),
+    ...unavailable.map(i => `${i.products.name}: no longer available — remove it from your cart`),
+  ];
   const stockWarning = checkoutBlocked
-    ? `<div class="research-banner" style="text-transform:none; margin-top:12px; text-align:left;">Some items exceed what's in stock — lower the quantity in your <a href="cart.html" style="color:#fff; text-decoration:underline;">cart</a> to continue:<br>${overStock.map(i => `${i.products.name}: only ${i.products.stock_quantity} left (cart has ${i.quantity})`).join('<br>')}</div>`
+    ? `<div class="research-banner" style="text-transform:none; margin-top:12px; text-align:left;">Some items need attention before you can continue — update your <a href="cart.html" style="color:#fff; text-decoration:underline;">cart</a>:<br>${warningLines.join('<br>')}</div>`
     : '';
 
   summaryEl.innerHTML = `
     <div class="section-head" style="margin-bottom:8px;"><div class="eyebrow">Order summary</div></div>
     ${currentCart.map(item => {
       const short = item.products.stock_quantity != null && item.quantity > item.products.stock_quantity;
+      const isUnavailable = item.products.active === false;
       return `
       <div class="coa-row">
-        <span class="label">${item.products.name} × ${item.quantity}${short ? ' ⚠' : ''}</span>
+        <span class="label">${item.products.name} × ${item.quantity}${(short || isUnavailable) ? ' ⚠' : ''}</span>
         <span class="value">$${((item.products.price_cents * item.quantity) / 100).toFixed(2)} USD</span>
       </div>`;
     }).join('')}

@@ -80,6 +80,16 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     errorBox.style.display = 'block';
     return;
   }
+
+  const pendingAdd = sessionStorage.getItem('aciona_pending_cart_add');
+  if (pendingAdd) {
+    sessionStorage.removeItem('aciona_pending_cart_add');
+    const { productId, quantity } = JSON.parse(pendingAdd);
+    await acionaAddToCart(productId, quantity);
+    window.location.href = 'cart.html';
+    return;
+  }
+
   window.location.href = 'account.html';
 });
 </script>

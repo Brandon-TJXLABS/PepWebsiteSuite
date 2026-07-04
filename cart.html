@@ -70,22 +70,31 @@ async function renderCart() {
 
   let subtotal = 0;
   let totalVials = 0;
+  let hasUnavailable = false;
   container.innerHTML = cart.map(item => {
     const product = item.products;
-    const lineTotal = product.price_cents * item.quantity;
-    subtotal += lineTotal;
-    totalVials += item.quantity;
+    const unavailable = product.active === false;
+    if (unavailable) hasUnavailable = true;
+
+    if (!unavailable) {
+      subtotal += product.price_cents * item.quantity;
+      totalVials += item.quantity;
+    }
+
     return `
-      <div class="cart-row">
+      <div class="cart-row" style="${unavailable ? 'opacity:.6;' : ''}">
         <div>
           <strong>${product.name}</strong>
           <div class="code mono" style="color:var(--ink-soft);">${product.sku}</div>
+          ${unavailable ? '<div style="font-size:.78rem; color:#B3261E; font-weight:600;">No longer available — remove to continue</div>' : ''}
         </div>
         <div class="mono">$${(product.price_cents / 100).toFixed(2)} ea</div>
         <div class="qty-controls">
-          <button onclick="changeQty('${item.id}', ${item.quantity - 1})">−</button>
-          <span class="mono">${item.quantity}</span>
-          <button onclick="changeQty('${item.id}', ${item.quantity + 1})">+</button>
+          ${unavailable
+            ? `<span class="mono">${item.quantity}</span>`
+            : `<button onclick="changeQty('${item.id}', ${item.quantity - 1})">−</button>
+               <span class="mono">${item.quantity}</span>
+               <button onclick="changeQty('${item.id}', ${item.quantity + 1})">+</button>`}
         </div>
         <div>
           <a href="#" onclick="removeItem('${item.id}'); return false;" style="font-size:.85rem;">Remove</a>
@@ -111,7 +120,14 @@ async function renderCart() {
     shippingNote.classList.remove('quote');
   }
 
-  document.getElementById('checkout-btn').style.display = 'inline-flex';
+  const checkoutBtn = document.getElementById('checkout-btn');
+  if (hasUnavailable) {
+    checkoutBtn.style.display = 'none';
+    shippingNote.textContent = 'Remove the unavailable item(s) above before checking out.';
+    shippingNote.classList.add('quote');
+  } else {
+    checkoutBtn.style.display = 'inline-flex';
+  }
 }
 
 async function changeQty(cartItemId, newQty) {

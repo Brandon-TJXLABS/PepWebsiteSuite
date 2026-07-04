@@ -257,26 +257,57 @@ async function loadOrders() {
       <div class="coa-row"><span class="label">Subtotal</span><span class="value">$${(order.total_cents / 100).toFixed(2)} USD</span></div>
       <div class="coa-row"><span class="label">Shipping</span><span class="value">${hasShipping ? '$' + (order.shipping_cents / 100).toFixed(2) + ' USD' : 'Awaiting quote'}</span></div>
       <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${(grandTotal / 100).toFixed(2)} USD${hasShipping ? '' : ' + shipping'}</span></div>
-      ${order.tracking_number ? `<div class="coa-row"><span class="label">Tracking</span><span class="value">${order.tracking_number}</span></div>` : ''}
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+      ${order.tracking_number ? `<div class="coa-row"><span class="label">Tracking</span><span class="value"><a href="https://www.google.com/search?q=${encodeURIComponent(order.tracking_number + ' tracking')}" target="_blank" rel="noopener">${order.tracking_number}</a></span></div>` : ''}
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:8px;">
         <div style="font-size:.8rem; color:var(--ink-soft);">
           Payment: ${paymentLabel} · ${new Date(order.created_at).toLocaleDateString('en-AU')}
         </div>
-        <button class="btn btn-outline" style="padding:8px 16px; font-size:.85rem;" onclick="acionaReorder('${order.id}')">Reorder</button>
+        <div style="display:flex; gap:8px;">
+          ${(order.status === 'pending_payment' || order.status === 'awaiting_shipping_quote')
+            ? `<button class="btn btn-outline" style="padding:8px 16px; font-size:.85rem; color:#B3261E; border-color:#B3261E;" onclick="acionaCancelOrder('${order.id}')">Cancel order</button>`
+            : ''}
+          <button class="btn btn-outline" style="padding:8px 16px; font-size:.85rem;" onclick="acionaReorder('${order.id}')">Reorder</button>
+        </div>
       </div>
     </div>
   `;
   }).join('');
 }
 
+async function acionaCancelOrder(orderId) {
+  if (!confirm('Cancel this order? This cannot be undone.')) return;
+  const { error } = await supabaseClient.from('orders').delete().eq('id', orderId);
+  if (error) {
+    alert('Could not cancel this order. Please try again or contact support.');
+    console.error(error);
+    return;
+  }
+  loadOrders();
+}
+
 async function acionaReorder(orderId) {
   const order = acionaOrders.find(o => o.id === orderId);
   if (!order) return;
 
+  const productIds = order.order_items.filter(item => item.product_id).map(item => item.product_id);
+  const { data: currentProducts } = await supabaseClient
+    .from('products')
+    .select('id, active')
+    .in('id', productIds);
+  const activeIds = new Set((currentProducts || []).filter(p => p.active).map(p => p.id));
+
+  const skipped = [];
   for (const item of order.order_items) {
-    if (item.product_id) {
-      await acionaAddToCart(item.product_id, item.quantity);
+    if (!item.product_id) continue;
+    if (!activeIds.has(item.product_id)) {
+      skipped.push(item.product_name);
+      continue;
     }
+    await acionaAddToCart(item.product_id, item.quantity);
+  }
+
+  if (skipped.length > 0) {
+    alert(`These items are no longer available and were skipped: ${skipped.join(', ')}`);
   }
   window.location.href = 'cart.html';
 }

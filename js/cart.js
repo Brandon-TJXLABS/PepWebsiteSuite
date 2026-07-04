@@ -3,6 +3,9 @@
 async function acionaAddToCart(productId, quantity = 1) {
   const user = await acionaGetUser();
   if (!user) {
+    // Preserve intent so login.html can complete this add automatically
+    // once the customer signs in, instead of silently dropping it.
+    sessionStorage.setItem('aciona_pending_cart_add', JSON.stringify({ productId, quantity }));
     window.location.href = 'login.html';
     return;
   }
@@ -39,7 +42,7 @@ async function acionaGetCart() {
 
   const { data, error } = await supabaseClient
     .from('cart_items')
-    .select('id, quantity, products ( id, name, sku, purity, price_cents, batch_code, stock_quantity )')
+    .select('id, quantity, products ( id, name, sku, purity, price_cents, batch_code, stock_quantity, active )')
     .eq('user_id', user.id);
 
   if (error) {
