@@ -58,7 +58,7 @@
       <div class="field" style="margin:0; min-width:220px;">
         <label for="order-status-filter">Status</label>
         <select id="order-status-filter">
-          <option value="open" selected>Open (pending payment / awaiting quote)</option>
+          <option value="open" selected>Open (not shipped or cancelled)</option>
           <option value="all">All statuses</option>
           <option value="pending_payment">Pending payment</option>
           <option value="awaiting_shipping_quote">Awaiting shipping quote</option>
@@ -121,6 +121,12 @@ function isStaleUnpaid(order) {
   return ageHours > STALE_UNPAID_HOURS;
 }
 
+// "Open" = still needs some action from the owner — not yet shipped, not
+// cancelled. A paid-but-unshipped order still needs to be packed and sent.
+function isOpenOrder(order) {
+  return order.status !== 'shipped' && order.status !== 'cancelled';
+}
+
 async function loadOrders() {
   const { data: orders, error } = await supabaseClient
     .from('orders')
@@ -146,7 +152,7 @@ function renderOrders() {
 
   let filtered = allOrders;
   if (statusFilter === 'open') {
-    filtered = filtered.filter(o => o.status === 'pending_payment' || o.status === 'awaiting_shipping_quote');
+    filtered = filtered.filter(isOpenOrder);
   } else if (statusFilter !== 'all') {
     filtered = filtered.filter(o => o.status === statusFilter);
   }
@@ -362,7 +368,7 @@ async function saveOrder(card) {
 }
 
 function renderStats() {
-  const awaiting = allOrders.filter(o => o.status === 'pending_payment' || o.status === 'awaiting_shipping_quote').length;
+  const awaiting = allOrders.filter(isOpenOrder).length;
   document.getElementById('stat-awaiting').textContent = awaiting;
 
   const revenueCents = allOrders
@@ -380,7 +386,7 @@ function exportOrdersCsv() {
 
   let filtered = allOrders;
   if (statusFilter === 'open') {
-    filtered = filtered.filter(o => o.status === 'pending_payment' || o.status === 'awaiting_shipping_quote');
+    filtered = filtered.filter(isOpenOrder);
   } else if (statusFilter !== 'all') {
     filtered = filtered.filter(o => o.status === statusFilter);
   }
