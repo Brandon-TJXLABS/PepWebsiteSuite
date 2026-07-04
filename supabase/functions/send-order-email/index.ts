@@ -153,6 +153,22 @@ function buildOrderEmailHtml(order: any, items: any[], emailKind: "confirmation"
 
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+// admin.html calls this function directly from the browser (the manual resend
+// path), which means the browser sends a CORS preflight OPTIONS request first
+// with an Authorization/Content-Type header — without these headers on every
+// response (including the OPTIONS one), the browser blocks the real request
+// before it's ever sent. The Database Webhook path doesn't need this (it's a
+// server-to-server call, not subject to CORS), but it's harmless to include.
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function resp(body: string, status: number): Response {
+  return new Response(body, { status, headers: CORS_HEADERS });
+}
+
 async function sendOrderEmail(orderId: string, emailKind: "confirmation" | "shipped"): Promise<Response> {
   const { data: orderRow, error: orderError } = await supabaseAdmin
     .from("orders")
@@ -162,14 +178,14 @@ async function sendOrderEmail(orderId: string, emailKind: "confirmation" | "ship
 
   if (orderError || !orderRow) {
     console.error("order lookup failed", orderError);
-    return new Response("order not found", { status: 404 });
+    return resp("order not found", 404);
   }
 
   const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(orderRow.user_id);
   const customerEmail = userData?.user?.email;
   if (userError || !customerEmail) {
     console.error("no email on file for order", orderRow.id, userError);
-    return new Response("no email on file", { status: 200 });
+    return resp("no email on file", 200);
   }
 
   const html = buildOrderEmailHtml(orderRow, orderRow.order_items, emailKind);
@@ -194,18 +210,22 @@ async function sendOrderEmail(orderId: string, emailKind: "confirmation" | "ship
 
   if (!resendResp.ok) {
     console.error("Resend send failed", await resendResp.text());
-    return new Response("email send failed", { status: 502 });
+    return resp("email send failed", 502);
   }
 
-  return new Response("ok", { status: 200 });
+  return resp("ok", 200);
 }
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: CORS_HEADERS });
+  }
+
   let payload: any;
   try {
     payload = await req.json();
   } catch {
-    return new Response("invalid json", { status: 400 });
+    return resp("invalid json", 400);
   }
 
   const authHeader = req.headers.get("Authorization") ?? "";
@@ -215,12 +235,12 @@ Deno.serve(async (req) => {
   if (payload.action === "resend") {
     const { order_id, kind } = payload;
     if (!order_id || (kind !== "confirmation" && kind !== "shipped")) {
-      return new Response("invalid resend request", { status: 400 });
+      return resp("invalid resend request", 400);
     }
 
     const { data: callerData, error: callerError } = await supabaseAdmin.auth.getUser(bearerToken);
     if (callerError || !callerData?.user) {
-      return new Response("unauthorized", { status: 401 });
+      return resp("unauthorized", 401);
     }
 
     const { data: callerProfile } = await supabaseAdmin
@@ -230,7 +250,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!callerProfile?.is_admin) {
-      return new Response("forbidden", { status: 403 });
+      return resp("forbidden", 403);
     }
 
     return sendOrderEmail(order_id, kind);
@@ -239,11 +259,11 @@ Deno.serve(async (req) => {
   // Database Webhook path: only trusted if it's really Supabase's own webhook,
   // which authenticates with the service-role key — not just any valid JWT.
   if (bearerToken !== SUPABASE_SERVICE_ROLE_KEY) {
-    return new Response("forbidden", { status: 403 });
+    return resp("forbidden", 403);
   }
 
   const order = payload.record;
-  if (!order?.id) return new Response("missing order id", { status: 400 });
+  if (!order?.id) return resp("missing order id", 400);
 
   // INSERT always sends a confirmation. UPDATE only sends a shipped email on
   // the actual transition into 'shipped' (old_record.status was something
@@ -253,7 +273,7 @@ Deno.serve(async (req) => {
     payload.type === "UPDATE" && order.status === "shipped" && payload.old_record?.status !== "shipped";
 
   if (payload.type === "UPDATE" && !becameShipped) {
-    return new Response("no-op", { status: 200 });
+    return resp("no-op", 200);
   }
 
   return sendOrderEmail(order.id, becameShipped ? "shipped" : "confirmation");
