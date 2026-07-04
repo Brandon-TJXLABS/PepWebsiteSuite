@@ -37,7 +37,7 @@
       <div class="section-head" style="margin-bottom:28px;">
         <div class="eyebrow">Message us</div>
       </div>
-      <form class="contact-form">
+      <form class="contact-form" id="contact-form">
         <div class="field">
           <label for="name">Full name</label>
           <input type="text" id="name" name="name" placeholder="Jordan Smith" required>
@@ -59,6 +59,8 @@
           <label for="message">Message</label>
           <textarea id="message" name="message" placeholder="How can we help?" required></textarea>
         </div>
+        <div id="contact-error" style="color:#B3261E; font-size:.85rem; display:none;"></div>
+        <div id="contact-success" style="color:var(--verified); font-size:.85rem; display:none;"></div>
         <button type="submit" class="btn btn-primary" style="justify-self:start;">Send message</button>
       </form>
     </div>
@@ -136,5 +138,31 @@
 <script src="js/auth.js"></script>
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
+<script>
+document.getElementById('contact-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  const topic = document.getElementById('topic').value;
+  const message = document.getElementById('message').value;
+  const errorBox = document.getElementById('contact-error');
+  const successBox = document.getElementById('contact-success');
+
+  const { error } = await supabaseClient.from('contact_messages').insert({ name, email, topic, message });
+
+  if (error) {
+    successBox.style.display = 'none';
+    errorBox.textContent = 'Something went wrong sending your message. Please try again or email us directly.';
+    errorBox.style.display = 'block';
+    console.error(error);
+    return;
+  }
+
+  errorBox.style.display = 'none';
+  successBox.textContent = "Message sent — we'll get back to you within one business day.";
+  successBox.style.display = 'block';
+  document.getElementById('contact-form').reset();
+});
+</script>
 </body>
 </html>
