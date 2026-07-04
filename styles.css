@@ -441,6 +441,15 @@ footer a:hover{color:var(--blue-deep);}
 }
 .shipping-note.quote{color:#B8860B; font-weight:600;}
 
+/* ---------- FAQ accordion ---------- */
+.faq-question{
+  width:100%; display:flex; justify-content:space-between; align-items:center;
+  background:none; border:none; cursor:pointer; padding:0; text-align:left;
+  font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:1rem; color:var(--blue-deep);
+}
+.faq-chevron{transition:transform .2s ease; color:var(--blue-mid);}
+.faq-answer{display:none; margin-top:10px; color:var(--ink-soft); font-size:.92rem; line-height:1.6;}
+
 /* ---------- Address view/edit card ---------- */
 .address-view-card{
   background:var(--panel); border:1px solid var(--line); padding:20px;

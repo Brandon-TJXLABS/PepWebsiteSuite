@@ -109,6 +109,11 @@
       <div>
         <div class="brand" style="margin-bottom:10px;"><span class="brand-mark"></span> Aciona</div>
         <p style="color:var(--ink-soft); font-size:.9rem; max-width:36ch;">Third-party verified research peptides, with a published Certificate of Analysis on every batch.</p>
+        <form id="newsletter-form" style="margin-top:16px; display:flex; gap:8px; max-width:320px;">
+          <input type="email" id="newsletter-email" placeholder="Email for updates" required style="flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:3px; font-size:.85rem;">
+          <button type="submit" class="btn btn-outline" style="padding:10px 14px; font-size:.82rem;">Sign up</button>
+        </form>
+        <div id="newsletter-feedback" style="font-size:.8rem; margin-top:6px; display:none;"></div>
       </div>
       <div>
         <h4>Site</h4>
@@ -116,6 +121,7 @@
           <li><a href="index.html">Products</a></li>
           <li><a href="about.html">About us</a></li>
           <li><a href="lab-results.html">Lab results</a></li>
+          <li><a href="faq.html">FAQ</a></li>
           <li><a href="contact.html">Contact</a></li>
         </ul>
       </div>
@@ -150,5 +156,26 @@
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
 <script src="js/products.js"></script>
+<script>
+document.getElementById('newsletter-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('newsletter-email').value;
+  const feedback = document.getElementById('newsletter-feedback');
+
+  const { error } = await supabaseClient.from('newsletter_signups').insert({ email });
+
+  feedback.style.display = 'block';
+  if (error) {
+    feedback.style.color = '#B3261E';
+    feedback.textContent = 'Something went wrong — please try again.';
+    console.error(error);
+    return;
+  }
+
+  feedback.style.color = 'var(--verified)';
+  feedback.textContent = "You're on the list.";
+  document.getElementById('newsletter-form').reset();
+});
+</script>
 </body>
 </html>
