@@ -4,3 +4,7 @@ sql-editor/
 
 # Local reference material (screenshots etc.), not part of the live site.
 Example images/
+
+# Internal project docs — kept local, not published to the public repo.
+CLAUDE.md
+docs/

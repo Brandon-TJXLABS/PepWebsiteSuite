@@ -39,7 +39,7 @@ async function acionaGetCart() {
 
   const { data, error } = await supabaseClient
     .from('cart_items')
-    .select('id, quantity, products ( id, name, sku, purity, price_cents, batch_code )')
+    .select('id, quantity, products ( id, name, sku, purity, price_cents, batch_code, stock_quantity )')
     .eq('user_id', user.id);
 
   if (error) {

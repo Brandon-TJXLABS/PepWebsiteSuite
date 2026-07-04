@@ -127,6 +127,7 @@ let currentSubtotal = 0;
 let currentVials = 0;
 let currentShipping = { cents: 0, requiresQuote: false, label: '' };
 let currentProfile = null;
+let checkoutBlocked = false;
 
 async function loadOrderSummary() {
   const user = await acionaRequireAuth();
@@ -171,6 +172,13 @@ async function loadOrderSummary() {
   currentVials = currentCart.reduce((sum, item) => sum + item.quantity, 0);
   currentShipping = acionaCalculateShipping(currentVials, currentSubtotal);
 
+  // Pre-check stock so the customer sees "only N left" here rather than hitting
+  // a hard rejection when they press the button. stock_quantity is never null
+  // in the DB, but guard anyway.
+  const overStock = currentCart.filter(item =>
+    item.products.stock_quantity != null && item.quantity > item.products.stock_quantity);
+  checkoutBlocked = overStock.length > 0;
+
   const shippingLine = currentShipping.requiresQuote
     ? `<div class="coa-row"><span class="label">Shipping</span><span class="value">Quote required</span></div>`
     : `<div class="coa-row"><span class="label">Shipping</span><span class="value">${currentShipping.label}</span></div>`;
@@ -179,21 +187,29 @@ async function loadOrderSummary() {
     ? `<div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${(currentSubtotal / 100).toFixed(2)} USD + shipping</span></div>`
     : `<div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${((currentSubtotal + currentShipping.cents) / 100).toFixed(2)} USD</span></div>`;
 
+  const stockWarning = checkoutBlocked
+    ? `<div class="research-banner" style="text-transform:none; margin-top:12px; text-align:left;">Some items exceed what's in stock — lower the quantity in your <a href="cart.html" style="color:#fff; text-decoration:underline;">cart</a> to continue:<br>${overStock.map(i => `${i.products.name}: only ${i.products.stock_quantity} left (cart has ${i.quantity})`).join('<br>')}</div>`
+    : '';
+
   summaryEl.innerHTML = `
     <div class="section-head" style="margin-bottom:8px;"><div class="eyebrow">Order summary</div></div>
-    ${currentCart.map(item => `
+    ${currentCart.map(item => {
+      const short = item.products.stock_quantity != null && item.quantity > item.products.stock_quantity;
+      return `
       <div class="coa-row">
-        <span class="label">${item.products.name} × ${item.quantity}</span>
+        <span class="label">${item.products.name} × ${item.quantity}${short ? ' ⚠' : ''}</span>
         <span class="value">$${((item.products.price_cents * item.quantity) / 100).toFixed(2)} USD</span>
-      </div>
-    `).join('')}
+      </div>`;
+    }).join('')}
     <div class="coa-row"><span class="label">Subtotal</span><span class="value">$${(currentSubtotal / 100).toFixed(2)} USD</span></div>
     ${shippingLine}
     ${totalLine}
+    ${stockWarning}
   `;
 
   if (currentShipping.requiresQuote) {
     document.getElementById('quote-section').style.display = 'block';
+    document.getElementById('request-quote-btn').disabled = checkoutBlocked;
   } else {
     document.getElementById('payment-section').style.display = 'block';
   }
@@ -222,8 +238,10 @@ async function createOrderItemsAndDecrementStock(orderId) {
 
   // Stock automatically decrements via a database trigger the moment these
   // rows are inserted -- no direct RPC call needed (and no longer possible;
-  // that path was closed for security reasons).
-  await supabaseClient.from('order_items').insert(orderItems);
+  // that path was closed for security reasons). The trigger REJECTS the insert
+  // if any line exceeds available stock, so return the error to the caller.
+  const { error } = await supabaseClient.from('order_items').insert(orderItems);
+  return error;
 }
 
 document.querySelectorAll('.payment-option').forEach(option => {
@@ -234,7 +252,7 @@ document.querySelectorAll('.payment-option').forEach(option => {
     option.querySelector('input').checked = true;
     const method = option.dataset.method;
     document.getElementById('instructions-' + method).classList.add('active');
-    document.getElementById('place-order-btn').disabled = false;
+    if (!checkoutBlocked) document.getElementById('place-order-btn').disabled = false;
   });
 });
 
@@ -267,7 +285,16 @@ document.getElementById('place-order-btn').addEventListener('click', async () =>
     return;
   }
 
-  await createOrderItemsAndDecrementStock(order.id);
+  const itemsError = await createOrderItemsAndDecrementStock(order.id);
+  if (itemsError) {
+    // A line exceeded available stock (or otherwise failed); the whole insert
+    // rolled back so no stock changed. Remove the now-orphaned order.
+    await supabaseClient.from('orders').delete().eq('id', order.id);
+    alert('Sorry — one or more items just went out of stock. Please review your cart and try again.');
+    btn.disabled = false;
+    btn.textContent = 'Place order';
+    return;
+  }
 
   if (typeof acionaTrack === 'function') {
     acionaTrack('order_placed', { metadata: { total_cents: currentSubtotal, shipping_cents: currentShipping.cents, payment_method: selected.value } });
@@ -307,7 +334,14 @@ document.getElementById('request-quote-btn').addEventListener('click', async () 
     return;
   }
 
-  await createOrderItemsAndDecrementStock(order.id);
+  const itemsError = await createOrderItemsAndDecrementStock(order.id);
+  if (itemsError) {
+    await supabaseClient.from('orders').delete().eq('id', order.id);
+    alert('Sorry — one or more items just went out of stock. Please review your cart and try again.');
+    btn.disabled = false;
+    btn.textContent = 'Request shipping quote';
+    return;
+  }
 
   if (typeof acionaTrack === 'function') {
     acionaTrack('order_placed', { metadata: { total_cents: currentSubtotal, awaiting_quote: true } });
