@@ -105,21 +105,80 @@ function acionaRenderProductGrid(products) {
       </div>
       ${p.show_research_banner !== false ? `<div class="research-banner">⚠ For research use only</div>` : ''}
       <div class="code mono">${p.sku}</div>
-      <h3>${p.name}</h3>
+      <div class="title-row">
+        <h3>${p.name}</h3>
+        ${!outOfStock ? `<span class="stock-pill">In stock</span>` : ''}
+      </div>
       <div class="desc">${p.description || ''}</div>
       <div class="metrics">
         <div class="purity">${p.purity || '—'}<span>Purity</span></div>
         <div class="purity">${formatPrice(p.price_cents)}<span>Price</span></div>
       </div>
       ${outOfStock
-        ? `<button class="btn btn-outline" style="width:100%; margin-top:14px; justify-content:center;" disabled onclick="event.stopPropagation();">Out of stock</button>
-           ${p.restock_date ? `<div class="restock-note">Back in stock ${formatRestockDate(p.restock_date)}</div>` : ''}`
+        ? `<div class="notify-row">
+             <button class="btn btn-outline" style="flex:1; justify-content:center;" disabled onclick="event.stopPropagation();">Out of stock</button>
+             <button class="notify-bell" title="Notify me when available" onclick="event.stopPropagation(); acionaToggleNotify('${p.id}', 'card')">🔔</button>
+           </div>
+           ${p.restock_date ? `<div class="restock-note">Back in stock ${formatRestockDate(p.restock_date)}</div>` : ''}
+           ${acionaNotifyPopoverHtml(p.id, 'card')}`
         : `<button class="btn btn-primary" style="width:100%; margin-top:14px; justify-content:center;" onclick="event.stopPropagation(); acionaAddToCart('${p.id}')">Add to cart</button>`
       }
       ${p.wiki_url ? `<a href="${p.wiki_url}" onclick="event.stopPropagation();" class="coa-link" style="display:block; text-align:center; margin-top:10px; font-size:.82rem;">Research reference →</a>` : ''}
     </div>
   `;
   }).join('');
+}
+
+// Shared markup for the "Notify me when available" inline popover. The card
+// grid and the quick-view modal can both show a popover for the same
+// product at once, so DOM ids are scoped by `context` ('card' vs 'modal')
+// to avoid colliding duplicate ids.
+function acionaNotifyPopoverHtml(productId, context) {
+  const key = `${context}-${productId}`;
+  return `
+    <div class="notify-popover" id="notify-popover-${key}" onclick="event.stopPropagation();">
+      <label for="notify-email-${key}">Notify me when available</label>
+      <div class="row">
+        <input type="email" id="notify-email-${key}" placeholder="you@email.com" required>
+        <button class="btn btn-primary" onclick="acionaSubmitNotify('${productId}', '${context}')">Notify me</button>
+      </div>
+      <div class="notify-msg" id="notify-msg-${key}"></div>
+    </div>
+  `;
+}
+
+function acionaToggleNotify(productId, context) {
+  const popover = document.getElementById(`notify-popover-${context}-${productId}`);
+  if (popover) popover.classList.toggle('open');
+}
+
+async function acionaSubmitNotify(productId, context) {
+  const key = `${context}-${productId}`;
+  const input = document.getElementById(`notify-email-${key}`);
+  const msg = document.getElementById(`notify-msg-${key}`);
+  const email = input ? input.value.trim() : '';
+
+  if (!email || !input.checkValidity()) {
+    msg.textContent = 'Enter a valid email address.';
+    msg.className = 'notify-msg err';
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('stock_notifications')
+    .insert({ product_id: productId, email });
+
+  if (error) {
+    msg.textContent = (error.code === '23505')
+      ? "You're already on the list for this product."
+      : 'Something went wrong — please try again.';
+    msg.className = 'notify-msg err';
+    return;
+  }
+
+  msg.textContent = "You're on the list — we'll email you when it's back.";
+  msg.className = 'notify-msg ok';
+  input.value = '';
 }
 
 function acionaOpenModal(productId) {
@@ -150,8 +209,12 @@ function acionaOpenModal(productId) {
       ${p.wiki_url ? `<a href="${p.wiki_url}" class="coa-link" style="display:inline-block; margin-top:12px; margin-left:16px;">Research reference →</a>` : ''}
 
       ${outOfStock
-        ? `<button class="btn btn-outline" style="width:100%; margin-top:20px; justify-content:center;" disabled>Out of stock</button>
-           ${p.restock_date ? `<div class="restock-note">Back in stock ${formatRestockDate(p.restock_date)}</div>` : ''}`
+        ? `<div class="notify-row" style="margin-top:20px;">
+             <button class="btn btn-outline" style="flex:1; justify-content:center;" disabled>Out of stock</button>
+             <button class="notify-bell" title="Notify me when available" onclick="acionaToggleNotify('${p.id}', 'modal')">🔔</button>
+           </div>
+           ${p.restock_date ? `<div class="restock-note">Back in stock ${formatRestockDate(p.restock_date)}</div>` : ''}
+           ${acionaNotifyPopoverHtml(p.id, 'modal')}`
         : `<div class="field" style="max-width:120px; margin-top:20px;">
              <label for="modal-qty">Quantity</label>
              <input type="number" id="modal-qty" min="1" value="1">
