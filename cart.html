@@ -84,6 +84,7 @@ async function renderCart() {
 
     return `
       <div class="cart-row" style="${unavailable ? 'opacity:.6;' : ''}">
+        <img class="cart-row-image" src="${product.image_url || PLACEHOLDER_IMAGE_SVG}" alt="${product.name}" loading="lazy">
         <div>
           <strong>${product.name}</strong>
           <div class="code mono" style="color:var(--ink-soft);">${product.sku}</div>

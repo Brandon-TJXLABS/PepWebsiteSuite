@@ -13,13 +13,8 @@ function formatRestockDate(dateStr) {
   return `${day}/${month}/${year}`;
 }
 
-// Placeholder shown when a product has no image_url set yet
-const PLACEHOLDER_IMAGE_SVG = `data:image/svg+xml;utf8,` + encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
-  <rect width="300" height="200" fill="#E3EEF5"/>
-  <text x="150" y="105" font-family="IBM Plex Mono, monospace" font-size="12" fill="#57697A" text-anchor="middle">No image yet</text>
-</svg>
-`);
+// PLACEHOLDER_IMAGE_SVG is defined in cart.js (loaded before this file on
+// every page that uses it) and reused here rather than duplicated.
 
 const LOW_STOCK_THRESHOLD = 5;
 

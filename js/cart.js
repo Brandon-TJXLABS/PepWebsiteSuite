@@ -1,5 +1,16 @@
 // Cart helpers — cart is stored in Supabase per logged-in user
 
+// Placeholder shown when a product has no image_url set yet. Defined here
+// (not products.js) since cart.js loads on every page and always loads
+// before products.js where both are present — products.js reuses this
+// same constant rather than defining its own copy.
+const PLACEHOLDER_IMAGE_SVG = `data:image/svg+xml;utf8,` + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
+  <rect width="300" height="200" fill="#E3EEF5"/>
+  <text x="150" y="105" font-family="IBM Plex Mono, monospace" font-size="12" fill="#57697A" text-anchor="middle">No image yet</text>
+</svg>
+`);
+
 // Matches the quantity <= 10 condition on cart_items' customer-facing RLS
 // policies (sql-editor/migrations/2026-07-06_cart_qty_cap.sql) — clamped
 // client-side too so the customer sees a friendly message instead of a raw
@@ -50,7 +61,7 @@ async function acionaGetCart() {
 
   const { data, error } = await supabaseClient
     .from('cart_items')
-    .select('id, quantity, products ( id, name, sku, purity, price_cents, batch_code, stock_quantity, active )')
+    .select('id, quantity, products ( id, name, sku, purity, price_cents, batch_code, stock_quantity, active, image_url )')
     .eq('user_id', user.id);
 
   if (error) {
@@ -170,6 +181,7 @@ async function acionaRenderCartDrawer() {
 
     return `
       <div class="drawer-item">
+        <img class="drawer-item-image" src="${product.image_url || PLACEHOLDER_IMAGE_SVG}" alt="${product.name}" loading="lazy">
         <div class="drawer-item-details">
           <strong>${product.name}</strong>
           <div class="drawer-item-price">$${(product.price_cents / 100).toFixed(2)} ea</div>
