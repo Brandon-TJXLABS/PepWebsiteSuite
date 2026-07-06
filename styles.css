@@ -105,8 +105,8 @@ a.brand:hover{text-decoration:none; opacity:.85;}
 
 /* ---------- Hero banner (full-width photo + bottom content card) ---------- */
 .hero-banner{
-  padding:64px 0;
-  min-height:520px;
+  padding:80px 0;
+  min-height:680px;
   display:flex;
   align-items:flex-end;
   background-size:cover;
@@ -585,7 +585,7 @@ footer a:hover{color:var(--blue-deep);}
   .navlinks.nav-open{display:flex;}
   .navlinks li{width:100%;}
   .navlinks a{display:block; padding:12px 28px;}
-  .hero-banner{min-height:420px; padding:36px 0;}
+  .hero-banner{min-height:480px; padding:44px 0;}
   .hero-content-card{padding:20px 22px;}
 }
 
