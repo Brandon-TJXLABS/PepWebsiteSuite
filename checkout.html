@@ -59,15 +59,8 @@
         <div class="eyebrow">Payment method</div>
       </div>
 
-      <p style="color:var(--ink-soft); font-size:.85rem; margin:0 0 14px;">All totals are in AUD. Paying from overseas? Wise and crypto both convert from your local currency automatically — bank transfer is an Australian account, best suited to AU/NZ customers.</p>
+      <p style="color:var(--ink-soft); font-size:.85rem; margin:0 0 14px;">All totals are in AUD. Paying from overseas? Wise converts from your local currency automatically — bank transfer is an Australian account, best suited to AU/NZ customers.</p>
       <div class="payment-options">
-        <label class="payment-option" data-method="crypto">
-          <input type="radio" name="payment_method" value="crypto">
-          <div>
-            <div class="title">Crypto</div>
-            <div class="sub">Pay with BTC, USDT, or USDC. No chargebacks, settles fast — converts from your local currency automatically.</div>
-          </div>
-        </label>
         <label class="payment-option" data-method="bank_transfer">
           <input type="radio" name="payment_method" value="bank_transfer">
           <div>
@@ -82,12 +75,6 @@
             <div class="sub">International transfer via Wise — pay in your own currency, Wise converts to AUD. Good for overseas customers.</div>
           </div>
         </label>
-      </div>
-
-      <div class="payment-instructions" id="instructions-crypto">
-        <strong>Crypto payment instructions</strong>
-        <p style="color:var(--ink-soft); margin:8px 0 0;">Send the exact total to the wallet address below. Your order ships once the transaction confirms on-chain.</p>
-        <div class="mono-block">USDT (TRC20): [add your wallet address here]</div>
       </div>
 
       <div class="payment-instructions" id="instructions-bank_transfer">
