@@ -121,15 +121,16 @@ function acionaCloseCartDrawer() {
 }
 
 // Builds the free-shipping progress bar, reusing the real threshold from
-// js/shipping.js (FREE_SHIPPING_THRESHOLD_CENTS) rather than a separate
-// hardcoded number, and acionaCalculateShipping's requiresQuote flag for
-// the 60+ vial edge case.
-function acionaShippingProgressHtml(subtotalCents, shipping) {
+// js/shipping.js's shipping_settings fetch (passed in, since the old
+// hardcoded FREE_SHIPPING_THRESHOLD_CENTS constant is now DB-backed
+// instead of a fixed global), and acionaCalculateShipping's requiresQuote
+// flag for the 60+ vial edge case.
+function acionaShippingProgressHtml(subtotalCents, shipping, freeShippingThresholdCents) {
   if (shipping.requiresQuote) {
-    return `<div class="shipping-progress"><p class="shipping-progress-label">Your order is 60+ vials — shipping needs a manual quote at checkout.</p></div>`;
+    return `<div class="shipping-progress"><p class="shipping-progress-label">${shipping.label} — shipping needs a manual quote at checkout.</p></div>`;
   }
 
-  const remaining = FREE_SHIPPING_THRESHOLD_CENTS - subtotalCents;
+  const remaining = freeShippingThresholdCents - subtotalCents;
   if (remaining <= 0) {
     return `
       <div class="shipping-progress">
@@ -141,7 +142,7 @@ function acionaShippingProgressHtml(subtotalCents, shipping) {
       </div>`;
   }
 
-  const pct = Math.max(0, Math.min(100, (subtotalCents / FREE_SHIPPING_THRESHOLD_CENTS) * 100));
+  const pct = Math.max(0, Math.min(100, (subtotalCents / freeShippingThresholdCents) * 100));
   return `
     <div class="shipping-progress">
       <div class="shipping-progress-track-wrap">
@@ -208,11 +209,12 @@ async function acionaRenderCartDrawer() {
     `;
   }).join('');
 
-  const shipping = acionaCalculateShipping(totalVials, subtotal);
+  const shipping = await acionaCalculateShipping(totalVials, subtotal);
+  const shippingSettings = await acionaGetShippingSettings();
 
   body.innerHTML = `
     <div class="bac-water-note"><strong>Please note:</strong> BAC Water is not included with your peptides — sold separately.</div>
-    ${acionaShippingProgressHtml(subtotal, shipping)}
+    ${acionaShippingProgressHtml(subtotal, shipping, shippingSettings.free_shipping_threshold_cents)}
     ${itemsHtml}
   `;
 
