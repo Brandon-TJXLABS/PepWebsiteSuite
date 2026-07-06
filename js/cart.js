@@ -133,7 +133,10 @@ function acionaShippingProgressHtml(subtotalCents, shipping) {
   if (remaining <= 0) {
     return `
       <div class="shipping-progress">
-        <div class="shipping-progress-track"><div class="shipping-progress-fill" style="width:100%;"></div></div>
+        <div class="shipping-progress-track-wrap">
+          <div class="shipping-progress-track"><div class="shipping-progress-mask" style="width:0%;"></div></div>
+          <span class="shipping-progress-truck" style="left:100%;">🚚</span>
+        </div>
         <p class="shipping-progress-label done">Free shipping unlocked!</p>
       </div>`;
   }
@@ -141,7 +144,10 @@ function acionaShippingProgressHtml(subtotalCents, shipping) {
   const pct = Math.max(0, Math.min(100, (subtotalCents / FREE_SHIPPING_THRESHOLD_CENTS) * 100));
   return `
     <div class="shipping-progress">
-      <div class="shipping-progress-track"><div class="shipping-progress-fill" style="width:${pct}%;"></div></div>
+      <div class="shipping-progress-track-wrap">
+        <div class="shipping-progress-track"><div class="shipping-progress-mask" style="width:${100 - pct}%;"></div></div>
+        <span class="shipping-progress-truck" style="left:${pct}%;">🚚</span>
+      </div>
       <p class="shipping-progress-label">Spend $${(remaining / 100).toFixed(2)} more for free shipping</p>
     </div>`;
 }
@@ -184,6 +190,7 @@ async function acionaRenderCartDrawer() {
         <img class="drawer-item-image" src="${product.image_url || PLACEHOLDER_IMAGE_SVG}" alt="${product.name}" loading="lazy">
         <div class="drawer-item-details">
           <strong>${product.name}</strong>
+          <div class="drawer-item-sku">${product.sku}</div>
           <div class="drawer-item-price">$${(product.price_cents / 100).toFixed(2)} ea</div>
           ${unavailable ? `<div class="drawer-warning">No longer available — remove to continue</div>` : ''}
           ${overStock ? `<div class="drawer-warning">Only ${product.stock_quantity} left — reduce quantity</div>` : ''}
