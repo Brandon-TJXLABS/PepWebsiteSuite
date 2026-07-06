@@ -105,8 +105,8 @@ a.brand:hover{text-decoration:none; opacity:.85;}
 
 /* ---------- Hero banner (full-width photo + bottom content card) ---------- */
 .hero-banner{
-  padding:80px 0;
-  min-height:680px;
+  padding:64px 0;
+  min-height:520px;
   display:flex;
   align-items:flex-end;
   background-size:cover;
@@ -114,7 +114,7 @@ a.brand:hover{text-decoration:none; opacity:.85;}
   background-repeat:no-repeat;
 }
 .hero-content-card{
-  background:rgba(255,255,255,.25);
+  background:rgba(255,255,255,.5);
   backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
   border:1px solid var(--line);
@@ -123,8 +123,8 @@ a.brand:hover{text-decoration:none; opacity:.85;}
   max-width:520px;
   box-shadow:0 8px 24px rgba(10,20,35,.18);
 }
-.hero-content-card .eyebrow{color:var(--blue-deep); font-weight:700; text-shadow:0 1px 2px rgba(255,255,255,.9), 0 0 10px rgba(255,255,255,.8);}
-.hero-content-card .lede{color:var(--ink); font-weight:500; text-shadow:0 1px 2px rgba(255,255,255,.9), 0 0 10px rgba(255,255,255,.8);}
+.hero-content-card .eyebrow{color:var(--blue-deep); font-weight:700;}
+.hero-content-card .lede{color:var(--ink); font-weight:500;}
 .hero-content-card .lede{margin-bottom:1.4em;}
 .hero-content-card .hero-actions{margin-bottom:0;}
 
@@ -605,7 +605,7 @@ footer a:hover{color:var(--blue-deep);}
   .navlinks.nav-open{display:flex;}
   .navlinks li{width:100%;}
   .navlinks a{display:block; padding:12px 28px;}
-  .hero-banner{min-height:480px; padding:44px 0;}
+  .hero-banner{min-height:420px; padding:36px 0;}
   .hero-content-card{padding:20px 22px;}
 }
 
