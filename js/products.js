@@ -215,11 +215,7 @@ function acionaOpenModal(productId) {
            </div>
            ${p.restock_date ? `<div class="restock-note">Back in stock ${formatRestockDate(p.restock_date)}</div>` : ''}
            ${acionaNotifyPopoverHtml(p.id, 'modal')}`
-        : `<div class="field" style="max-width:120px; margin-top:20px;">
-             <label for="modal-qty">Quantity</label>
-             <input type="number" id="modal-qty" min="1" value="1">
-           </div>
-           <button class="btn btn-primary" style="width:100%; margin-top:12px; justify-content:center;" onclick="acionaAddToCartFromModal('${p.id}')">Add to cart</button>`
+        : `<button class="btn btn-primary" style="width:100%; margin-top:20px; justify-content:center;" onclick="acionaAddToCartFromModal('${p.id}')">Add to cart</button>`
       }
     </div>
   `;
@@ -229,9 +225,8 @@ function acionaOpenModal(productId) {
 }
 
 function acionaAddToCartFromModal(productId) {
-  const qtyInput = document.getElementById('modal-qty');
-  const quantity = qtyInput ? Math.max(1, parseInt(qtyInput.value, 10) || 1) : 1;
-  acionaAddToCart(productId, quantity);
+  acionaAddToCart(productId, 1);
+  acionaCloseModal();
 }
 
 function acionaCloseModal() {

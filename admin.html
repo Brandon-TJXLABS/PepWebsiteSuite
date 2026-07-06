@@ -17,6 +17,7 @@
       <li><a href="index.html">Products</a></li>
       <li><a href="about.html">About</a></li>
       <li><a href="lab-results.html">Lab Results</a></li>
+      <li><a href="product-request.html">Request a Product</a></li>
       <li><a href="contact.html">Contact</a></li>
       <li><a href="cart.html">Cart <span id="cart-count" class="cart-badge"></span></a></li>
       <li><a href="account.html" id="nav-account">Account</a></li>
@@ -95,6 +96,7 @@
 <script src="js/auth.js"></script>
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
+<script src="js/shipping.js"></script>
 <script src="js/admin.js"></script>
 <script>
 let allOrders = [];
@@ -531,6 +533,18 @@ async function loadAdminDashboard() {
 
 loadAdminDashboard();
 </script>
+
+<!-- Cart drawer (side sheet) -->
+<div class="drawer-overlay" id="cart-drawer-overlay" onclick="if(event.target === this) acionaCloseCartDrawer()">
+  <div class="drawer-panel">
+    <div class="drawer-head">
+      <h3>Your cart</h3>
+      <button class="modal-close" onclick="acionaCloseCartDrawer()" aria-label="Close" style="position:static;">×</button>
+    </div>
+    <div class="drawer-body" id="cart-drawer-body"></div>
+    <div class="drawer-footer" id="cart-drawer-footer" style="display:none;"></div>
+  </div>
+</div>
 
 </body>
 </html>

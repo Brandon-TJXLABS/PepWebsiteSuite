@@ -16,6 +16,7 @@
       <li><a href="index.html">Products</a></li>
       <li><a href="about.html" class="active">About</a></li>
       <li><a href="lab-results.html">Lab Results</a></li>
+      <li><a href="product-request.html">Request a Product</a></li>
       <li><a href="contact.html">Contact</a></li>
       <li><a href="cart.html">Cart <span id="cart-count" class="cart-badge"></span></a></li>
       <li><a href="login.html" id="nav-account">Login</a></li>
@@ -57,25 +58,26 @@
 <section class="alt">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">Who we are</div>
-      <h2>Team</h2>
-      <p>Replace with your real team bios — this is placeholder structure.</p>
+      <div class="eyebrow">Why Aciona exists</div>
+      <h2>Verification isn't a feature. It's the whole point.</h2>
+      <p>Most research suppliers ask you to take their word for it. We built Aciona around the opposite idea — every batch gets tested before it gets sold, every result gets published before you buy, and nothing about that process is optional or upsold.</p>
     </div>
-    <div class="team-grid">
-      <div class="team-card">
-        <div class="avatar">JS</div>
-        <h3 style="font-size:1.05rem;">Jordan Smith</h3>
-        <p style="color:var(--ink-soft); font-size:.88rem; margin:0;">Founder — oversees sourcing and quality standards.</p>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="eyebrow">Uncompromising quality</div>
+        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">Every batch is independently tested before it's listed — not sampled occasionally, not tested after the fact. If a batch doesn't pass, it doesn't go on sale.</p>
       </div>
-      <div class="team-card">
-        <div class="avatar">AL</div>
-        <h3 style="font-size:1.05rem;">Alex Lee</h3>
-        <p style="color:var(--ink-soft); font-size:.88rem; margin:0;">Operations — manages fulfilment and cold-chain logistics.</p>
+      <div class="info-card">
+        <div class="eyebrow">Full transparency</div>
+        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">Every Certificate of Analysis is published on this site, not sent on request. You can check purity and identity before you ever add something to your cart.</p>
       </div>
-      <div class="team-card">
-        <div class="avatar">RP</div>
-        <h3 style="font-size:1.05rem;">Riley Park</h3>
-        <p style="color:var(--ink-soft); font-size:.88rem; margin:0;">Quality — coordinates third-party lab testing and COA review.</p>
+      <div class="info-card">
+        <div class="eyebrow">Straightforward service</div>
+        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">Real answers from real people — no scripts, no runaround. If something's wrong with an order, we fix it.</p>
+      </div>
+      <div class="info-card">
+        <div class="eyebrow">Compliance &amp; responsibility</div>
+        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">Every product is sold strictly for laboratory research use, in line with the terms every customer agrees to before checkout — no exceptions, no gray areas.</p>
       </div>
     </div>
   </div>
@@ -102,6 +104,7 @@
           <li><a href="index.html">Products</a></li>
           <li><a href="about.html">About us</a></li>
           <li><a href="lab-results.html">Lab results</a></li>
+          <li><a href="product-request.html">Request a product</a></li>
           <li><a href="contact.html">Contact</a></li>
         </ul>
       </div>
@@ -138,5 +141,18 @@
 <script src="js/auth.js"></script>
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
+<script src="js/shipping.js"></script>
+<!-- Cart drawer (side sheet) -->
+<div class="drawer-overlay" id="cart-drawer-overlay" onclick="if(event.target === this) acionaCloseCartDrawer()">
+  <div class="drawer-panel">
+    <div class="drawer-head">
+      <h3>Your cart</h3>
+      <button class="modal-close" onclick="acionaCloseCartDrawer()" aria-label="Close" style="position:static;">×</button>
+    </div>
+    <div class="drawer-body" id="cart-drawer-body"></div>
+    <div class="drawer-footer" id="cart-drawer-footer" style="display:none;"></div>
+  </div>
+</div>
+
 </body>
 </html>

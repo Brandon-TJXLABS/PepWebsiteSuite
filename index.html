@@ -16,6 +16,7 @@
       <li><a href="index.html" class="active">Products</a></li>
       <li><a href="about.html">About</a></li>
       <li><a href="lab-results.html">Lab Results</a></li>
+      <li><a href="product-request.html">Request a Product</a></li>
       <li><a href="contact.html">Contact</a></li>
       <li><a href="cart.html">Cart <span id="cart-count" class="cart-badge"></span></a></li>
       <li><a href="login.html" id="nav-account">Login</a></li>
@@ -28,7 +29,7 @@
     <div>
       <div class="eyebrow">Batch-tested · Third-party COA</div>
       <h1>Peptides, verified to the decimal.</h1>
-      <p class="lede">Every vial ships with an independent Certificate of Analysis. No guessing on purity, no unverified claims — just the data, published in full.</p>
+      <p class="lede">Click into any product below and you'll find its real Certificate of Analysis, published on this site — not sent on request, not summarized for you. Check the purity yourself before you buy.</p>
       <div class="hero-actions">
         <a href="#products" class="btn btn-primary">View products</a>
         <a href="lab-results.html" class="btn btn-outline">See lab results</a>
@@ -62,7 +63,7 @@
     <div class="section-head">
       <div class="eyebrow">Catalog</div>
       <h2>Research peptides</h2>
-      <p>Each listing links to its own Certificate of Analysis. Replace this catalog with your live product data and pricing.</p>
+      <p>Current stock, pulled live — every listing links to its own Certificate of Analysis, and to a research reference page where one's available.</p>
     </div>
 
     <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px;">
@@ -122,6 +123,7 @@
           <li><a href="about.html">About us</a></li>
           <li><a href="lab-results.html">Lab results</a></li>
           <li><a href="faq.html">FAQ</a></li>
+          <li><a href="product-request.html">Request a product</a></li>
           <li><a href="contact.html">Contact</a></li>
         </ul>
       </div>
@@ -158,6 +160,7 @@
 <script src="js/auth.js"></script>
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
+<script src="js/shipping.js"></script>
 <script src="js/products.js"></script>
 <script>
 document.getElementById('newsletter-form').addEventListener('submit', async (e) => {
@@ -180,5 +183,17 @@ document.getElementById('newsletter-form').addEventListener('submit', async (e) 
   document.getElementById('newsletter-form').reset();
 });
 </script>
+<!-- Cart drawer (side sheet) -->
+<div class="drawer-overlay" id="cart-drawer-overlay" onclick="if(event.target === this) acionaCloseCartDrawer()">
+  <div class="drawer-panel">
+    <div class="drawer-head">
+      <h3>Your cart</h3>
+      <button class="modal-close" onclick="acionaCloseCartDrawer()" aria-label="Close" style="position:static;">×</button>
+    </div>
+    <div class="drawer-body" id="cart-drawer-body"></div>
+    <div class="drawer-footer" id="cart-drawer-footer" style="display:none;"></div>
+  </div>
+</div>
+
 </body>
 </html>
