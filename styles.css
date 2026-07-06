@@ -114,7 +114,9 @@ a.brand:hover{text-decoration:none; opacity:.85;}
   background-repeat:no-repeat;
 }
 .hero-content-card{
-  background:var(--panel);
+  background:rgba(255,255,255,.5);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
   border:1px solid var(--line);
   border-radius:6px;
   padding:28px 32px;
