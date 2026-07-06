@@ -16,7 +16,7 @@ async function acionaSignIn(email, password) {
 
 async function acionaSignOut() {
   await supabaseClient.auth.signOut();
-  window.location.href = 'index.html';
+  window.location.href = '/';
 }
 
 async function acionaGetUser() {
@@ -28,7 +28,7 @@ async function acionaGetUser() {
 async function acionaRequireAuth() {
   const user = await acionaGetUser();
   if (!user) {
-    window.location.href = 'login.html';
+    window.location.href = 'login';
   }
   return user;
 }
@@ -42,10 +42,10 @@ async function acionaUpdateNav() {
 
   if (user) {
     navAccount.textContent = 'Account';
-    navAccount.href = 'account.html';
+    navAccount.href = 'account';
   } else {
     navAccount.textContent = 'Login';
-    navAccount.href = 'login.html';
+    navAccount.href = 'login';
   }
 }
 

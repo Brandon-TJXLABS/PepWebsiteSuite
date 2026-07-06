@@ -16,7 +16,7 @@ async function acionaRequireAdmin() {
     .maybeSingle();
 
   if (error || !profile || !profile.is_admin) {
-    window.location.href = 'index.html';
+    window.location.href = '/';
     return null;
   }
   return user;

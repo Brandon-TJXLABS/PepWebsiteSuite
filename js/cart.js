@@ -24,7 +24,7 @@ async function acionaAddToCart(productId, quantity = 1) {
     // Preserve intent so login.html can complete this add automatically
     // once the customer signs in, instead of silently dropping it.
     sessionStorage.setItem('aciona_pending_cart_add', JSON.stringify({ productId, quantity }));
-    window.location.href = 'login.html';
+    window.location.href = 'login';
     return;
   }
 
@@ -161,7 +161,7 @@ async function acionaRenderCartDrawer() {
   const cart = await acionaGetCart();
 
   if (cart.length === 0) {
-    body.innerHTML = `<div class="drawer-empty">Your cart is empty.<br><a href="index.html">Continue shopping</a></div>`;
+    body.innerHTML = `<div class="drawer-empty">Your cart is empty.<br><a href="/">Continue shopping</a></div>`;
     if (footer) footer.style.display = 'none';
     return;
   }
@@ -222,8 +222,8 @@ async function acionaRenderCartDrawer() {
     footer.innerHTML = `
       <div class="coa-row" style="border:none; padding:0 0 12px;"><span class="label">Subtotal</span><span class="value">$${(subtotal / 100).toFixed(2)} AUD</span></div>
       <div class="drawer-actions">
-        <a href="cart.html" class="btn btn-outline">View cart</a>
-        <a href="checkout.html" class="btn btn-primary">Checkout</a>
+        <a href="cart" class="btn btn-outline">View cart</a>
+        <a href="checkout" class="btn btn-primary">Checkout</a>
       </div>
     `;
   }

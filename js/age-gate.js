@@ -23,7 +23,7 @@
       '</label>' +
       '<label class="age-gate-check">' +
         '<input type="checkbox" id="gate-terms">' +
-        '<span>I have read and agree to Aciona\'s <a href="terms.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">Privacy Policy</a>, and accept all associated liability</span>' +
+        '<span>I have read and agree to Aciona\'s <a href="terms" target="_blank" rel="noopener" onclick="event.stopPropagation()">Terms of Service</a> and <a href="privacy" target="_blank" rel="noopener" onclick="event.stopPropagation()">Privacy Policy</a>, and accept all associated liability</span>' +
       '</label>' +
       '<div class="age-gate-actions">' +
         '<button id="gate-enter" class="btn btn-primary" disabled>Enter Site</button>' +

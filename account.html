@@ -10,16 +10,16 @@
 
 <header class="site">
   <nav class="nav">
-    <a href="index.html" class="brand"><span class="brand-mark"></span> Aciona</a>
+    <a href="/" class="brand"><span class="brand-mark"></span> Aciona</a>
     <button class="nav-toggle" onclick="acionaToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
-      <li><a href="index.html">Products</a></li>
-      <li><a href="about.html">About</a></li>
-      <li><a href="lab-results.html">Lab Results</a></li>
-      <li><a href="product-request.html">Request a Product</a></li>
-      <li><a href="contact.html">Contact</a></li>
-      <li><a href="cart.html">Cart <span id="cart-count" class="cart-badge"></span></a></li>
-      <li><a href="account.html" class="active" id="nav-account">Account</a></li>
+      <li><a href="/">Products</a></li>
+      <li><a href="about">About</a></li>
+      <li><a href="lab-results">Lab Results</a></li>
+      <li><a href="product-request">Request a Product</a></li>
+      <li><a href="contact">Contact</a></li>
+      <li><a href="cart">Cart <span id="cart-count" class="cart-badge"></span></a></li>
+      <li><a href="account" class="active" id="nav-account">Account</a></li>
     </ul>
   </nav>
 </header>
@@ -31,7 +31,7 @@
     <p id="account-email" style="color:var(--ink-soft); margin-top:-8px;"></p>
     <div style="display:flex; gap:10px; margin-top:12px;">
       <button class="btn btn-outline" id="logout-btn">Log out</button>
-      <a href="admin.html" class="btn btn-primary" id="admin-dashboard-link" style="display:none;">Admin dashboard</a>
+      <a href="admin" class="btn btn-primary" id="admin-dashboard-link" style="display:none;">Admin dashboard</a>
     </div>
   </div>
 </section>
@@ -262,7 +262,7 @@ async function loadOrders() {
   acionaOrders = orders;
 
   if (orders.length === 0) {
-    container.innerHTML = '<p style="color:var(--ink-soft);">No orders yet. <a href="index.html">Browse products</a>.</p>';
+    container.innerHTML = '<p style="color:var(--ink-soft);">No orders yet. <a href="/">Browse products</a>.</p>';
     return;
   }
 
@@ -339,7 +339,7 @@ async function acionaReorder(orderId) {
   if (skipped.length > 0) {
     alert(`These items are no longer available and were skipped: ${skipped.join(', ')}`);
   }
-  window.location.href = 'cart.html';
+  window.location.href = 'cart';
 }
 
 document.getElementById('password-form').addEventListener('submit', async (e) => {
@@ -392,7 +392,7 @@ document.getElementById('delete-account-btn').addEventListener('click', async ()
     }
 
     await supabaseClient.auth.signOut();
-    window.location.href = 'index.html';
+    window.location.href = '/';
   } catch (err) {
     errorBox.textContent = 'Could not delete account. Please try again.';
     errorBox.style.display = 'block';

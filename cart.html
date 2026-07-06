@@ -10,16 +10,16 @@
 
 <header class="site">
   <nav class="nav">
-    <a href="index.html" class="brand"><span class="brand-mark"></span> Aciona</a>
+    <a href="/" class="brand"><span class="brand-mark"></span> Aciona</a>
     <button class="nav-toggle" onclick="acionaToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
-      <li><a href="index.html">Products</a></li>
-      <li><a href="about.html">About</a></li>
-      <li><a href="lab-results.html">Lab Results</a></li>
-      <li><a href="product-request.html">Request a Product</a></li>
-      <li><a href="contact.html">Contact</a></li>
-      <li><a href="cart.html" class="active">Cart <span id="cart-count" class="cart-badge"></span></a></li>
-      <li><a href="login.html" id="nav-account">Login</a></li>
+      <li><a href="/">Products</a></li>
+      <li><a href="about">About</a></li>
+      <li><a href="lab-results">Lab Results</a></li>
+      <li><a href="product-request">Request a Product</a></li>
+      <li><a href="contact">Contact</a></li>
+      <li><a href="cart" class="active">Cart <span id="cart-count" class="cart-badge"></span></a></li>
+      <li><a href="login" id="nav-account">Login</a></li>
     </ul>
   </nav>
 </header>
@@ -43,7 +43,7 @@
       <p class="shipping-note" id="cart-shipping-note" style="text-align:right; max-width:340px;"></p>
     </div>
     <div style="text-align:right; margin-top:12px;">
-      <a href="checkout.html" class="btn btn-primary" id="checkout-btn" style="display:none;">Proceed to checkout</a>
+      <a href="checkout" class="btn btn-primary" id="checkout-btn" style="display:none;">Proceed to checkout</a>
     </div>
   </div>
 </section>
@@ -65,7 +65,7 @@ async function renderCart() {
   const cart = await acionaGetCart();
 
   if (cart.length === 0) {
-    container.innerHTML = '<p style="color:var(--ink-soft);">Your cart is empty. <a href="index.html">Browse products</a>.</p>';
+    container.innerHTML = '<p style="color:var(--ink-soft);">Your cart is empty. <a href="/">Browse products</a>.</p>';
     return;
   }
 

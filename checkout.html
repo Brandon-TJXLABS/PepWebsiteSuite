@@ -10,16 +10,16 @@
 
 <header class="site">
   <nav class="nav">
-    <a href="index.html" class="brand"><span class="brand-mark"></span> Aciona</a>
+    <a href="/" class="brand"><span class="brand-mark"></span> Aciona</a>
     <button class="nav-toggle" onclick="acionaToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
-      <li><a href="index.html">Products</a></li>
-      <li><a href="about.html">About</a></li>
-      <li><a href="lab-results.html">Lab Results</a></li>
-      <li><a href="product-request.html">Request a Product</a></li>
-      <li><a href="contact.html">Contact</a></li>
-      <li><a href="cart.html">Cart <span id="cart-count" class="cart-badge"></span></a></li>
-      <li><a href="login.html" id="nav-account">Login</a></li>
+      <li><a href="/">Products</a></li>
+      <li><a href="about">About</a></li>
+      <li><a href="lab-results">Lab Results</a></li>
+      <li><a href="product-request">Request a Product</a></li>
+      <li><a href="contact">Contact</a></li>
+      <li><a href="cart">Cart <span id="cart-count" class="cart-badge"></span></a></li>
+      <li><a href="login" id="nav-account">Login</a></li>
     </ul>
   </nav>
 </header>
@@ -40,7 +40,7 @@
     </div>
 
     <div id="address-missing" class="disclaimer" style="display:none; margin-bottom:28px;">
-      You don't have a shipping address saved yet. <a href="account.html">Add one in your account</a> before checking out.
+      You don't have a shipping address saved yet. <a href="account">Add one in your account</a> before checking out.
     </div>
 
     <div id="order-summary">
@@ -95,7 +95,7 @@
     <div id="order-confirmation" style="display:none;">
       <div class="disclaimer" style="background:#E8F5EC; border-color:#BFE3CB;">
         <strong>Order placed — reference #<span id="confirmed-order-number"></span></strong><br>
-        <span id="confirmation-detail">Use this order number as your payment reference. Follow the payment instructions above to complete your order — we'll update your order status once payment is received, check <a href="account.html">your account</a> for updates.</span>
+        <span id="confirmation-detail">Use this order number as your payment reference. Follow the payment instructions above to complete your order — we'll update your order status once payment is received, check <a href="account">your account</a> for updates.</span>
       </div>
     </div>
 
@@ -146,14 +146,14 @@ async function loadOrderSummary() {
     ${profile.city || ''} ${profile.state || ''} ${profile.postcode || ''}<br>
     ${profile.country || ''}<br>
     ${profile.phone ? 'Phone: ' + profile.phone : ''}
-    <div style="margin-top:8px;"><a href="account.html" style="font-size:.82rem;">Change shipping address</a></div>
+    <div style="margin-top:8px;"><a href="account" style="font-size:.82rem;">Change shipping address</a></div>
   `;
 
   currentCart = await acionaGetCart();
   const summaryEl = document.getElementById('order-summary');
 
   if (currentCart.length === 0) {
-    summaryEl.innerHTML = '<p style="color:var(--ink-soft);">Your cart is empty. <a href="index.html">Browse products</a>.</p>';
+    summaryEl.innerHTML = '<p style="color:var(--ink-soft);">Your cart is empty. <a href="/">Browse products</a>.</p>';
     return;
   }
 
@@ -182,7 +182,7 @@ async function loadOrderSummary() {
     ...unavailable.map(i => `${i.products.name}: no longer available — remove it from your cart`),
   ];
   const stockWarning = checkoutBlocked
-    ? `<div class="research-banner" style="text-transform:none; margin-top:12px; text-align:left;">Some items need attention before you can continue — update your <a href="cart.html" style="color:#fff; text-decoration:underline;">cart</a>:<br>${warningLines.join('<br>')}</div>`
+    ? `<div class="research-banner" style="text-transform:none; margin-top:12px; text-align:left;">Some items need attention before you can continue — update your <a href="cart" style="color:#fff; text-decoration:underline;">cart</a>:<br>${warningLines.join('<br>')}</div>`
     : '';
 
   summaryEl.innerHTML = `
