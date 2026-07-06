@@ -554,6 +554,16 @@ footer a:hover{color:var(--blue-deep);}
 }
 .shipping-note.quote{color:#B8860B; font-weight:600;}
 
+/* ---------- Two-column form+sidebar layout (contact, product-request) ---------- */
+.two-col-grid{display:grid; grid-template-columns:1fr 1fr; gap:56px;}
+.field-pair-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+@media (max-width:860px){
+  .two-col-grid{grid-template-columns:1fr;}
+}
+@media (max-width:480px){
+  .field-pair-grid{grid-template-columns:1fr;}
+}
+
 /* ---------- Admin dashboard tabs ---------- */
 .admin-tabs{
   display:flex; gap:8px; flex-wrap:wrap;
