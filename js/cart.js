@@ -218,7 +218,7 @@ async function acionaRenderCartDrawer() {
 
   if (footer) {
     footer.innerHTML = `
-      <div class="coa-row" style="border:none; padding:0 0 12px;"><span class="label">Subtotal</span><span class="value">$${(subtotal / 100).toFixed(2)} USD</span></div>
+      <div class="coa-row" style="border:none; padding:0 0 12px;"><span class="label">Subtotal</span><span class="value">$${(subtotal / 100).toFixed(2)} AUD</span></div>
       <div class="drawer-actions">
         <a href="cart.html" class="btn btn-outline">View cart</a>
         <a href="checkout.html" class="btn btn-primary">Checkout</a>

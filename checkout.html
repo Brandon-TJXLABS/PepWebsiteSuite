@@ -59,26 +59,27 @@
         <div class="eyebrow">Payment method</div>
       </div>
 
+      <p style="color:var(--ink-soft); font-size:.85rem; margin:0 0 14px;">All totals are in AUD. Paying from overseas? Wise and crypto both convert from your local currency automatically — bank transfer is an Australian account, best suited to AU/NZ customers.</p>
       <div class="payment-options">
         <label class="payment-option" data-method="crypto">
           <input type="radio" name="payment_method" value="crypto">
           <div>
             <div class="title">Crypto</div>
-            <div class="sub">Pay with BTC, USDT, or USDC. No chargebacks, settles fast.</div>
+            <div class="sub">Pay with BTC, USDT, or USDC. No chargebacks, settles fast — converts from your local currency automatically.</div>
           </div>
         </label>
         <label class="payment-option" data-method="bank_transfer">
           <input type="radio" name="payment_method" value="bank_transfer">
           <div>
-            <div class="title">Bank transfer</div>
-            <div class="sub">Direct transfer to our account. Orders ship once received.</div>
+            <div class="title">Bank transfer (Australia)</div>
+            <div class="sub">Direct transfer to our Australian account. Orders ship once received.</div>
           </div>
         </label>
         <label class="payment-option" data-method="wise">
           <input type="radio" name="payment_method" value="wise">
           <div>
             <div class="title">Wise</div>
-            <div class="sub">International transfer via Wise. Good for overseas customers.</div>
+            <div class="sub">International transfer via Wise — pay in your own currency, Wise converts to AUD. Good for overseas customers.</div>
           </div>
         </label>
       </div>
@@ -186,8 +187,8 @@ async function loadOrderSummary() {
     : `<div class="coa-row"><span class="label">Shipping</span><span class="value">${currentShipping.label}</span></div>`;
 
   const totalLine = currentShipping.requiresQuote
-    ? `<div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${(currentSubtotal / 100).toFixed(2)} USD + shipping</span></div>`
-    : `<div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${((currentSubtotal + currentShipping.cents) / 100).toFixed(2)} USD</span></div>`;
+    ? `<div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${(currentSubtotal / 100).toFixed(2)} AUD + shipping</span></div>`
+    : `<div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">$${((currentSubtotal + currentShipping.cents) / 100).toFixed(2)} AUD</span></div>`;
 
   const warningLines = [
     ...overStock.map(i => `${i.products.name}: only ${i.products.stock_quantity} left (cart has ${i.quantity})`),
@@ -205,10 +206,10 @@ async function loadOrderSummary() {
       return `
       <div class="coa-row">
         <span class="label">${item.products.name} × ${item.quantity}${(short || isUnavailable) ? ' ⚠' : ''}</span>
-        <span class="value">$${((item.products.price_cents * item.quantity) / 100).toFixed(2)} USD</span>
+        <span class="value">$${((item.products.price_cents * item.quantity) / 100).toFixed(2)} AUD</span>
       </div>`;
     }).join('')}
-    <div class="coa-row"><span class="label">Subtotal</span><span class="value">$${(currentSubtotal / 100).toFixed(2)} USD</span></div>
+    <div class="coa-row"><span class="label">Subtotal</span><span class="value">$${(currentSubtotal / 100).toFixed(2)} AUD</span></div>
     ${shippingLine}
     ${totalLine}
     ${stockWarning}

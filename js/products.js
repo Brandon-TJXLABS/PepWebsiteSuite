@@ -2,7 +2,7 @@
 // Clicking a card opens a quick-view modal with more detail.
 
 function formatPrice(cents) {
-  return '$' + (cents / 100).toFixed(2) + ' USD';
+  return '$' + (cents / 100).toFixed(2) + ' AUD';
 }
 
 function formatRestockDate(dateStr) {

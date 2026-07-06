@@ -114,7 +114,7 @@ function statusColor(status) {
 }
 
 function moneyFromCents(cents) {
-  return `$${(cents / 100).toFixed(2)} USD`;
+  return `$${(cents / 100).toFixed(2)} AUD`;
 }
 
 function isStaleUnpaid(order) {
@@ -236,7 +236,7 @@ function renderOrders() {
           <input type="date" class="admin-shipped-at" value="${order.shipped_at ? order.shipped_at.slice(0, 10) : ''}">
         </div>
         <div class="field" style="margin:0;">
-          <label>Shipping (USD)</label>
+          <label>Shipping (AUD)</label>
           <input type="number" step="0.01" min="0" class="admin-shipping-cents" value="${hasShipping ? (order.shipping_cents / 100).toFixed(2) : ''}">
         </div>
       </div>
@@ -402,7 +402,7 @@ function exportOrdersCsv() {
   }
 
   const escapeCsv = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
-  const header = ['Order #', 'Customer', 'Email', 'Status', 'Subtotal USD', 'Shipping USD', 'Total USD', 'Payment method', 'Tracking', 'Created at'];
+  const header = ['Order #', 'Customer', 'Email', 'Status', 'Subtotal AUD', 'Shipping AUD', 'Total AUD', 'Payment method', 'Tracking', 'Created at'];
   const rows = filtered.map(o => {
     const hasShipping = o.shipping_cents !== null && o.shipping_cents !== undefined;
     const total = (o.total_cents + (hasShipping ? o.shipping_cents : 0)) / 100;

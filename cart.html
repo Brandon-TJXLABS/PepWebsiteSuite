@@ -37,9 +37,9 @@
       <p style="color:var(--ink-soft);">Loading cart…</p>
     </div>
     <div class="cart-summary" id="cart-summary" style="display:none; flex-direction:column; align-items:flex-end; gap:6px;">
-      <div class="coa-row" style="width:100%; max-width:340px; border:none;"><span class="label">Subtotal</span><span class="value" id="cart-subtotal">$0.00 USD</span></div>
+      <div class="coa-row" style="width:100%; max-width:340px; border:none;"><span class="label">Subtotal</span><span class="value" id="cart-subtotal">$0.00 AUD</span></div>
       <div class="coa-row" style="width:100%; max-width:340px; border:none;"><span class="label">Shipping</span><span class="value" id="cart-shipping">—</span></div>
-      <div class="coa-row" style="width:100%; max-width:340px;"><span class="label"><strong>Estimated total</strong></span><span class="value" id="cart-total">$0.00 USD</span></div>
+      <div class="coa-row" style="width:100%; max-width:340px;"><span class="label"><strong>Estimated total</strong></span><span class="value" id="cart-total">$0.00 AUD</span></div>
       <p class="shipping-note" id="cart-shipping-note" style="text-align:right; max-width:340px;"></p>
     </div>
     <div style="text-align:right; margin-top:12px;">
@@ -109,15 +109,15 @@ async function renderCart() {
   const shippingNote = document.getElementById('cart-shipping-note');
 
   document.getElementById('cart-summary').style.display = 'flex';
-  document.getElementById('cart-subtotal').textContent = '$' + (subtotal / 100).toFixed(2) + ' USD';
+  document.getElementById('cart-subtotal').textContent = '$' + (subtotal / 100).toFixed(2) + ' AUD';
   document.getElementById('cart-shipping').textContent = shipping.label;
 
   if (shipping.requiresQuote) {
-    document.getElementById('cart-total').textContent = '$' + (subtotal / 100).toFixed(2) + ' USD + shipping';
+    document.getElementById('cart-total').textContent = '$' + (subtotal / 100).toFixed(2) + ' AUD + shipping';
     shippingNote.textContent = 'Your order is 60+ vials, so shipping needs a manual quote — you\'ll be able to request one at checkout.';
     shippingNote.classList.add('quote');
   } else {
-    document.getElementById('cart-total').textContent = '$' + ((subtotal + shipping.cents) / 100).toFixed(2) + ' USD';
+    document.getElementById('cart-total').textContent = '$' + ((subtotal + shipping.cents) / 100).toFixed(2) + ' AUD';
     shippingNote.textContent = 'Estimated — confirmed at checkout.';
     shippingNote.classList.remove('quote');
   }
