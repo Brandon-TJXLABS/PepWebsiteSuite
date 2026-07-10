@@ -1,4 +1,4 @@
-// Loads products from Supabase and renders them into #products-grid on index.html
+// Loads products from Supabase and renders them into #products-grid on shop.html
 // Clicking a card opens a quick-view modal with more detail.
 
 function formatPrice(cents) {
@@ -234,3 +234,39 @@ document.addEventListener('DOMContentLoaded', acionaLoadProducts);
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') acionaCloseModal();
 });
+
+// Runs only on generated product-*.html pages (marker: #product-page —
+// see scripts/generate-product-pages.mjs). Re-checks live active/stock so
+// a stale generated page never shows a buy button for a product that's
+// since sold out or been deactivated. The DB already hard-rejects
+// overselling server-side via trigger_decrement_stock — this is a UX
+// nicety, not the security boundary.
+async function acionaHydrateStaticProductPage() {
+  const root = document.getElementById('product-page');
+  if (!root) return;
+  const productId = root.dataset.productId;
+
+  const { data: p, error } = await supabaseClient
+    .from('products')
+    .select('active, stock_quantity, price_cents, restock_date')
+    .eq('id', productId)
+    .maybeSingle();
+
+  const buyBox = document.getElementById('product-buy-box');
+  const priceEl = document.getElementById('product-live-price');
+
+  if (error || !p || p.active === false) {
+    if (buyBox) buyBox.innerHTML = `<button class="btn btn-outline" disabled>No longer available</button>`;
+    return;
+  }
+
+  if (priceEl && p.price_cents != null) priceEl.textContent = formatPrice(p.price_cents);
+
+  const qty = p.stock_quantity;
+  if (buyBox && qty !== null && qty !== undefined && qty <= 0) {
+    buyBox.innerHTML = `<button class="btn btn-outline" disabled>Out of stock</button>` +
+      (p.restock_date ? `<div class="restock-note">Back in stock ${formatRestockDate(p.restock_date)}</div>` : '');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', acionaHydrateStaticProductPage);

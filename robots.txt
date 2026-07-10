@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /update-password
+
+Sitemap: https://acionaco.com/sitemap.xml

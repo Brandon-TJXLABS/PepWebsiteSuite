@@ -13,7 +13,7 @@
     <a href="/" class="brand"><span class="brand-mark"></span> Aciona</a>
     <button class="nav-toggle" onclick="acionaToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
-      <li><a href="/" class="active">Products</a></li>
+      <li><a href="shop">Shop</a></li>
       <li><a href="about">About</a></li>
       <li><a href="lab-results">Lab Results</a></li>
       <li><a href="product-request">Request a Product</a></li>
@@ -30,7 +30,7 @@
       <div class="eyebrow">Batch-tested · Third-party COA</div>
       <p class="lede">We publish every batch's independent Certificate of Analysis right here on the site, so you always know exactly what's in the vial — no requests, no guesswork, just the real results.</p>
       <div class="hero-actions">
-        <a href="#products" class="btn btn-primary">View products</a>
+        <a href="shop" class="btn btn-primary">View products</a>
         <a href="lab-results" class="btn btn-outline">Browse lab results</a>
       </div>
     </div>
@@ -72,52 +72,6 @@
   </div>
 </section>
 
-<section id="products">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">Catalog</div>
-      <h2>Research peptides</h2>
-      <p>Here's what we currently have in stock. Every product page comes with its own Certificate of Analysis and a research reference guide, so you can look as closely as you'd like before deciding.</p>
-    </div>
-
-    <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px;">
-      <div class="field" style="margin:0; flex:1; min-width:220px;">
-        <label for="product-search">Search</label>
-        <input type="text" id="product-search" placeholder="Search products…" oninput="acionaApplyFiltersAndSort()">
-      </div>
-      <div class="field" style="margin:0; min-width:200px;">
-        <label for="product-sort">Sort by</label>
-        <select id="product-sort" onchange="acionaApplyFiltersAndSort()">
-          <option value="name">Name (A–Z)</option>
-          <option value="price-asc">Price (low to high)</option>
-          <option value="price-desc">Price (high to low)</option>
-          <option value="purity">Purity</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="grid-products" id="products-grid">
-      <p style="color:var(--ink-soft);">Loading products…</p>
-    </div>
-  </div>
-</section>
-
-<section class="alt">
-  <div class="wrap">
-    <div class="disclaimer">
-      <strong>Research use only.</strong> Products listed on this site are sold for laboratory research purposes only. They are not drugs, dietary supplements, or cosmetics, and are not intended for human or animal consumption. Not evaluated for safety or efficacy in humans. By purchasing, you confirm you are a qualified researcher and will handle these compounds in accordance with your local laws and institutional guidelines.
-    </div>
-  </div>
-</section>
-
-<!-- Product quick-view modal -->
-<div class="modal-overlay" id="product-modal" onclick="if(event.target === this) acionaCloseModal()">
-  <div class="modal-panel">
-    <button class="modal-close" onclick="acionaCloseModal()" aria-label="Close">×</button>
-    <div class="modal-content" id="product-modal-body"></div>
-  </div>
-</div>
-
 <footer>
   <div class="wrap">
     <div class="footer-grid">
@@ -133,7 +87,7 @@
       <div>
         <h4>Site</h4>
         <ul>
-          <li><a href="/">Products</a></li>
+          <li><a href="shop">Shop</a></li>
           <li><a href="about">About us</a></li>
           <li><a href="lab-results">Lab results</a></li>
           <li><a href="faq">FAQ</a></li>
@@ -175,7 +129,6 @@
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
 <script src="js/shipping.js"></script>
-<script src="js/products.js"></script>
 <script>
 document.getElementById('newsletter-form').addEventListener('submit', async (e) => {
   e.preventDefault();
