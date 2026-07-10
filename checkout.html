@@ -59,7 +59,7 @@
         <div class="eyebrow">Payment method</div>
       </div>
 
-      <p style="color:var(--ink-soft); font-size:.85rem; margin:0 0 14px;">All totals are in AUD. Paying from overseas? Wise converts from your local currency automatically — bank transfer is an Australian account, best suited to AU/NZ customers.</p>
+      <p style="color:var(--ink-soft); font-size:.85rem; margin:0 0 14px;">All totals are in AUD. Bank transfer is an Australian account; PayID is also AU-only.</p>
       <div class="payment-options">
         <label class="payment-option" data-method="bank_transfer">
           <input type="radio" name="payment_method" value="bank_transfer">
@@ -68,11 +68,11 @@
             <div class="sub">Direct transfer to our Australian account. Orders ship once received.</div>
           </div>
         </label>
-        <label class="payment-option" data-method="wise">
-          <input type="radio" name="payment_method" value="wise">
+        <label class="payment-option" data-method="payid">
+          <input type="radio" name="payment_method" value="payid">
           <div>
-            <div class="title">Wise</div>
-            <div class="sub">International transfer via Wise — pay in your own currency, Wise converts to AUD. Good for overseas customers.</div>
+            <div class="title">PayID</div>
+            <div class="sub">Instant transfer via PayID — pay from your banking app using our PayID (ABN-linked). Fast, no international fees.</div>
           </div>
         </label>
       </div>
@@ -83,10 +83,10 @@
         <div class="mono-block" id="bank-transfer-details">Loading…</div>
       </div>
 
-      <div class="payment-instructions" id="instructions-wise">
-        <strong>Wise payment instructions</strong>
-        <p style="color:var(--ink-soft); margin:8px 0 0;">Send payment via Wise to the details below, using your order number as reference.</p>
-        <div class="mono-block" id="wise-details">Loading…</div>
+      <div class="payment-instructions" id="instructions-payid">
+        <strong>PayID instructions</strong>
+        <p style="color:var(--ink-soft); margin:8px 0 0;">Send payment via PayID to the identifier below, using your order number as reference.</p>
+        <div class="mono-block" id="payid-details">Loading…</div>
       </div>
 
       <button class="btn btn-primary" id="place-order-btn" style="margin-top:24px;" disabled>Place order</button>
@@ -95,8 +95,10 @@
     <div id="order-confirmation" style="display:none;">
       <div class="disclaimer" style="background:#E8F5EC; border-color:#BFE3CB;">
         <strong>Order placed — reference #<span id="confirmed-order-number"></span></strong><br>
-        <span id="confirmation-detail">Use this order number as your payment reference. Follow the payment instructions above to complete your order — we'll update your order status once payment is received, check <a href="account">your account</a> for updates.</span>
+        <span id="confirmation-detail">Follow the payment instructions below to complete your order — we'll update your order status once payment is received, check <a href="account">your account</a> for updates.</span>
       </div>
+      <div id="confirmation-payment-instructions"></div>
+      <button class="btn btn-outline" id="cancel-confirmed-order-btn" style="display:none; margin-top:8px; color:#B3261E; border-color:#B3261E;">Cancel order</button>
     </div>
 
   </div>
@@ -110,6 +112,7 @@
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
 <script src="js/shipping.js"></script>
+<script src="js/orders.js"></script>
 <script>
 let currentCart = [];
 let currentSubtotal = 0;
@@ -117,6 +120,8 @@ let currentVials = 0;
 let currentShipping = { cents: 0, requiresQuote: false, label: '' };
 let currentProfile = null;
 let checkoutBlocked = false;
+let currentPaymentSettingsData = null;
+let currentOrderId = null;
 
 async function loadOrderSummary() {
   const user = await acionaRequireAuth();
@@ -297,10 +302,25 @@ document.getElementById('place-order-btn').addEventListener('click', async () =>
 
   await acionaClearCart();
 
+  currentOrderId = order.id;
   document.getElementById('confirmed-order-number').textContent = order.order_number || order.id.slice(0, 8);
   document.getElementById('payment-section').style.display = 'none';
+  document.getElementById('confirmation-payment-instructions').innerHTML =
+    acionaRenderPaymentInstructions(order, currentPaymentSettingsData || {});
+  document.getElementById('cancel-confirmed-order-btn').style.display = 'inline-flex';
   document.getElementById('order-confirmation').style.display = 'block';
   acionaUpdateCartCount();
+});
+
+document.getElementById('cancel-confirmed-order-btn').addEventListener('click', () => {
+  if (!currentOrderId) return;
+  acionaCancelUnpaidOrder(currentOrderId, () => {
+    document.getElementById('order-confirmation').innerHTML = `
+      <div class="disclaimer">
+        <strong>Order cancelled.</strong> <a href="shop">Continue shopping</a>.
+      </div>
+    `;
+  });
 });
 
 document.getElementById('request-quote-btn').addEventListener('click', async () => {
@@ -359,16 +379,17 @@ async function loadPaymentSettings() {
     .maybeSingle();
 
   const bankEl = document.getElementById('bank-transfer-details');
-  const wiseEl = document.getElementById('wise-details');
+  const payidEl = document.getElementById('payid-details');
   if (error || !data) {
     bankEl.textContent = 'Payment details unavailable right now — please contact us.';
-    wiseEl.textContent = 'Payment details unavailable right now — please contact us.';
+    payidEl.textContent = 'Payment details unavailable right now — please contact us.';
     console.error(error);
     return;
   }
 
+  currentPaymentSettingsData = data;
   bankEl.innerHTML = `Account name: ${data.bank_account_name || '—'}<br>BSB: ${data.bank_bsb || '—'}<br>Account number: ${data.bank_account_number || '—'}`;
-  wiseEl.textContent = data.wise_account || '—';
+  payidEl.textContent = data.payid || '—';
 }
 
 loadOrderSummary();

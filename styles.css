@@ -317,6 +317,24 @@ footer a:hover{color:var(--blue-deep);}
   font-size:.8rem; color:var(--ink-soft);
 }
 
+/* ---------- "We Accept" payment badge strip (after footer) ---------- */
+.payment-strip{
+  border-top:1px solid var(--line);
+  background:var(--panel);
+  padding:16px 0;
+}
+.payment-strip .wrap{
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  font-size:.8rem; color:var(--ink-soft);
+}
+.payment-badge{
+  display:inline-flex; align-items:center; gap:5px;
+  font-family:'IBM Plex Mono', monospace; font-size:.7rem; font-weight:600;
+  letter-spacing:.03em; text-transform:uppercase;
+  padding:5px 11px; border-radius:12px;
+  border:1px solid var(--line); color:var(--ink-soft);
+}
+
 /* ---------- Cart badge ---------- */
 .cart-badge{
   display:inline-block; min-width:16px; text-align:center;
@@ -450,6 +468,19 @@ footer a:hover{color:var(--blue-deep);}
   padding:4px 9px; border-radius:2px;
 }
 .stock-badge.low{background:#B8860B;}
+
+/* ---------- Top Sellers ribbon (homepage only) ---------- */
+/* Deliberately not .stock-badge -- that's red/amber and means out-of-stock/
+   low-stock, wrong signal here. Sits top-left so it never overlaps a
+   product that's also low/out of stock (.stock-badge sits top-right). */
+.top-seller-badge{
+  position:absolute; top:12px; left:12px;
+  background:var(--blue-deep); color:#fff;
+  font-family:'IBM Plex Mono', monospace; font-size:.68rem; font-weight:600;
+  letter-spacing:.04em; text-transform:uppercase;
+  padding:4px 9px; border-radius:2px;
+}
+
 .card .btn:disabled{opacity:.55; cursor:not-allowed;}
 .restock-note{
   font-size:.78rem; color:var(--ink-soft); text-align:center; margin-top:8px;

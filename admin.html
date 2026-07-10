@@ -116,8 +116,8 @@
           <input type="text" id="ps-bank-account">
         </div>
         <div class="field">
-          <label for="ps-wise">Wise account / email</label>
-          <input type="text" id="ps-wise">
+          <label for="ps-payid">PayID</label>
+          <input type="text" id="ps-payid">
         </div>
         <button class="btn btn-primary" id="save-payment-settings-btn" type="button">Save payment details</button>
         <span class="admin-payment-feedback" style="font-size:.85rem; display:none; margin-left:10px;"></span>
@@ -232,6 +232,16 @@ function moneyFromCents(cents) {
   return `$${(cents / 100).toFixed(2)} AUD`;
 }
 
+// Purely a display-time calculation off created_at (already a real column,
+// already visible in Table Editor) -- not new stored data.
+function acionaTimeElapsed(dateStr) {
+  const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 48) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 function isStaleUnpaid(order) {
   if (order.status !== 'pending_payment') return false;
   const ageHours = (Date.now() - new Date(order.created_at).getTime()) / 3600000;
@@ -319,6 +329,9 @@ function renderOrders() {
         </div>
       </div>
 
+      <div style="font-size:.78rem; color:var(--ink-soft); margin-bottom:4px;">
+        Placed ${new Date(order.created_at).toLocaleString('en-AU')} · ${acionaTimeElapsed(order.created_at)}
+      </div>
       <div style="font-size:.88rem; color:var(--ink-soft); margin-bottom:12px;">
         ${customer.full_name || '<span class="empty">No name on file</span>'} ·
         ${customer.email || '<span class="empty">No email on file</span>'}
@@ -628,8 +641,15 @@ function renderProducts() {
           <label>Restock date</label>
           <input type="date" class="admin-restock-date" value="${product.restock_date || ''}">
         </div>
+        <div class="field" style="margin:0;">
+          <label>Featured rank (Top Sellers)</label>
+          <input type="number" min="1" class="admin-featured-rank" placeholder="Not featured" value="${product.featured_rank ?? ''}">
+        </div>
         <div class="field" style="margin:0; display:flex; align-items:center; gap:8px; margin-top:22px;">
           <label style="margin:0;"><input type="checkbox" class="admin-active" ${product.active ? 'checked' : ''}> Active</label>
+        </div>
+        <div class="field" style="margin:0; display:flex; align-items:center; gap:8px; margin-top:22px;">
+          <label style="margin:0;"><input type="checkbox" class="admin-show-banner" ${product.show_research_banner !== false ? 'checked' : ''}> Show research banner</label>
         </div>
       </div>
 
@@ -679,6 +699,9 @@ async function saveProduct(card) {
   const restock_date = card.querySelector('.admin-restock-date').value || null;
   const active = card.querySelector('.admin-active').checked;
   const description = card.querySelector('.admin-description').value;
+  const featuredRankRaw = card.querySelector('.admin-featured-rank').value;
+  const featured_rank = featuredRankRaw === '' ? null : parseInt(featuredRankRaw, 10);
+  const show_research_banner = card.querySelector('.admin-show-banner').checked;
   const pack_cost_cents = Math.round(parseFloat(card.querySelector('.admin-pack-cost').value || '0') * 100);
   const pack_size = parseInt(card.querySelector('.admin-pack-size').value, 10) || 10;
   const bulk_discount_percent = parseFloat(card.querySelector('.admin-bulk-pct').value || '0');
@@ -687,7 +710,7 @@ async function saveProduct(card) {
 
   const { error: productError } = await supabaseClient
     .from('products')
-    .update({ price_cents, stock_quantity, restock_date, active, description })
+    .update({ price_cents, stock_quantity, restock_date, active, description, featured_rank, show_research_banner })
     .eq('id', productId);
 
   const { error: costError } = await supabaseClient
@@ -713,7 +736,7 @@ async function loadCheckoutSettings() {
     document.getElementById('ps-bank-name').value = payment.bank_account_name || '';
     document.getElementById('ps-bank-bsb').value = payment.bank_bsb || '';
     document.getElementById('ps-bank-account').value = payment.bank_account_number || '';
-    document.getElementById('ps-wise').value = payment.wise_account || '';
+    document.getElementById('ps-payid').value = payment.payid || '';
   }
 
   const { data: shipping } = await supabaseClient.from('shipping_settings').select('*').maybeSingle();
@@ -736,7 +759,7 @@ async function savePaymentSettings() {
     bank_account_name: document.getElementById('ps-bank-name').value || null,
     bank_bsb: document.getElementById('ps-bank-bsb').value || null,
     bank_account_number: document.getElementById('ps-bank-account').value || null,
-    wise_account: document.getElementById('ps-wise').value || null,
+    payid: document.getElementById('ps-payid').value || null,
   };
   const { error } = await supabaseClient.from('payment_settings').update(updates).eq('id', true);
   feedback.style.display = 'inline';

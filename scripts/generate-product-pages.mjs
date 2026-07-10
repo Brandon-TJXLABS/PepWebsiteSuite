@@ -304,6 +304,7 @@ function renderProductPage(p) {
         <ul>
           <li><a href="mailto:hello@aciona.example">hello@aciona.example</a></li>
           <li>Mon–Fri, 9am–5pm</li>
+          <li>Sydney, NSW 2000 Australia</li>
         </ul>
       </div>
     </div>
@@ -316,6 +317,14 @@ function renderProductPage(p) {
     </div>
   </div>
 </footer>
+
+<div class="payment-strip">
+  <div class="wrap">
+    <span>We accept:</span>
+    <span class="payment-badge">🏦 Bank Transfer</span>
+    <span class="payment-badge">⚡ PayID</span>
+  </div>
+</div>
 
 <script src="js/age-gate.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

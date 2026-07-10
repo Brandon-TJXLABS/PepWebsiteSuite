@@ -79,19 +79,20 @@ function acionaApplyFiltersAndSort() {
   acionaRenderProductGrid(filtered);
 }
 
-function acionaRenderProductGrid(products) {
-  const grid = document.getElementById('products-grid');
-  if (!grid) return;
-
-  if (products.length === 0) {
-    grid.innerHTML = '<p style="color:var(--ink-soft);">No products match your search.</p>';
-    return;
-  }
-
-  grid.innerHTML = products.map(p => {
-    const { qty, outOfStock, lowStock } = acionaStockStatus(p);
-    return `
-    <div class="card clickable" onclick="acionaOpenModal('${p.id}')">
+// Builds one product card. clickable=true wraps the whole card in the
+// modal-opening onclick (used by shop.html's full grid, where #product-modal
+// exists); clickable=false omits it (homepage Top Sellers, where the modal
+// element doesn't exist on the page at all). topSeller=true adds a ribbon
+// badge -- deliberately not reusing .stock-badge (red/amber, means
+// out-of-stock/low-stock) -- positioned top-left so it never overlaps the
+// existing top-right stock badges.
+function acionaProductCardHtml(p, opts) {
+  const clickable = !!(opts && opts.clickable);
+  const topSeller = !!(opts && opts.topSeller);
+  const { qty, outOfStock, lowStock } = acionaStockStatus(p);
+  return `
+    <div class="card${clickable ? ' clickable' : ''}"${clickable ? ` onclick="acionaOpenModal('${p.id}')"` : ''}>
+      ${topSeller ? `<div class="top-seller-badge">★ Top Seller</div>` : ''}
       ${outOfStock ? `<div class="stock-badge">Out of stock</div>` : ''}
       ${lowStock ? `<div class="stock-badge low">Only ${qty} left</div>` : ''}
       <div class="card-image">
@@ -121,7 +122,46 @@ function acionaRenderProductGrid(products) {
       ${p.wiki_url ? `<a href="${p.wiki_url}" onclick="event.stopPropagation();" class="coa-link" style="display:block; text-align:center; margin-top:10px; font-size:.82rem;">Research reference →</a>` : ''}
     </div>
   `;
-  }).join('');
+}
+
+function acionaRenderProductGrid(products) {
+  const grid = document.getElementById('products-grid');
+  if (!grid) return;
+
+  if (products.length === 0) {
+    grid.innerHTML = '<p style="color:var(--ink-soft);">No products match your search.</p>';
+    return;
+  }
+
+  grid.innerHTML = products.map(p => acionaProductCardHtml(p, { clickable: true })).join('');
+}
+
+// Homepage-only "Top Sellers" strip -- manually curated via
+// products.featured_rank (see admin.html Products tab / Table Editor).
+// Cards are NOT clickable-to-modal since #product-modal doesn't exist on
+// index.html (it lives only on shop.html). Hides the whole section if no
+// product currently has a featured_rank set, so an uncurated homepage
+// never shows an empty section.
+async function acionaLoadTopSellers() {
+  const grid = document.getElementById('top-sellers-grid');
+  if (!grid) return;
+  const section = document.getElementById('top-sellers-section');
+
+  const { data: products, error } = await supabaseClient
+    .from('products')
+    .select('*')
+    .eq('active', true)
+    .not('featured_rank', 'is', null)
+    .order('featured_rank')
+    .limit(4);
+
+  if (error || !products || products.length === 0) {
+    if (section) section.style.display = 'none';
+    if (error) console.error(error);
+    return;
+  }
+
+  grid.innerHTML = products.map(p => acionaProductCardHtml(p, { clickable: false, topSeller: true })).join('');
 }
 
 // Shared markup for the "Notify me when available" inline popover. The card
@@ -230,6 +270,7 @@ function acionaCloseModal() {
 }
 
 document.addEventListener('DOMContentLoaded', acionaLoadProducts);
+document.addEventListener('DOMContentLoaded', acionaLoadTopSellers);
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') acionaCloseModal();

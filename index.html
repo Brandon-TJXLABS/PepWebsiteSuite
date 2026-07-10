@@ -46,6 +46,16 @@
   </div>
 </div>
 
+<section class="alt" id="top-sellers-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Top sellers</div>
+      <h2>Our most ordered peptides</h2>
+    </div>
+    <div class="grid-products" id="top-sellers-grid"></div>
+  </div>
+</section>
+
 <section>
   <div class="wrap">
     <div class="section-head">
@@ -56,7 +66,7 @@
       <div class="info-card">
         <span class="trust-icon" aria-hidden="true" style="margin-bottom:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.5"/><circle cx="18" cy="21" r="1.5"/><path d="M2 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 7H6"/></svg></span>
         <div class="eyebrow">01 — Order</div>
-        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">Place your order and pay by crypto, bank transfer, or Wise — whichever suits you.</p>
+        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">Place your order and pay by bank transfer or PayID — whichever suits you.</p>
       </div>
       <div class="info-card">
         <span class="trust-icon" aria-hidden="true" style="margin-bottom:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6"/><path d="M10 2v6.5L4.5 18a2 2 0 0 0 1.7 3h11.6a2 2 0 0 0 1.7-3L14 8.5V2"/><path d="M7.5 15h9"/></svg></span>
@@ -69,6 +79,34 @@
         <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">Cold-chain packaging, sent with tracking, straight to your door.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Common questions</div>
+      <h2>Quick answers before you order</h2>
+    </div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="eyebrow">01 — Testing</div>
+        <p style="font-weight:600; color:var(--blue-deep); margin:0 0 6px;">Are your products lab-tested?</p>
+        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">Yes — every batch is independently HPLC-tested by a third-party lab, and the Certificate of Analysis is published on our <a href="lab-results">Lab Results</a> page before you ever buy.</p>
+      </div>
+      <div class="info-card">
+        <div class="eyebrow">02 — Shipping &amp; payment</div>
+        <p style="font-weight:600; color:var(--blue-deep); margin:0 0 6px;">How do I pay, and do you ship Australia-wide?</p>
+        <!-- REVIEW: confirm exact dispatch/processing wording before launch -->
+        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">We accept bank transfer and PayID, and ship anywhere in Australia.</p>
+      </div>
+      <div class="info-card">
+        <div class="eyebrow">03 — Traceability</div>
+        <p style="font-weight:600; color:var(--blue-deep); margin:0 0 6px;">Can I trace a product back to its batch?</p>
+        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">Yes — every product is linked to a specific batch code, so you can always match what's in your vial to its published COA.</p>
+      </div>
+    </div>
+    <div style="margin-top:32px;"><a href="faq" class="btn btn-outline">See all FAQs</a></div>
   </div>
 </section>
 
@@ -108,6 +146,7 @@
         <ul>
           <li><a href="mailto:hello@aciona.example">hello@aciona.example</a></li>
           <li>Mon–Fri, 9am–5pm</li>
+          <li>Sydney, NSW 2000 Australia</li>
         </ul>
       </div>
     </div>
@@ -121,6 +160,14 @@
   </div>
 </footer>
 
+<div class="payment-strip">
+  <div class="wrap">
+    <span>We accept:</span>
+    <span class="payment-badge">🏦 Bank Transfer</span>
+    <span class="payment-badge">⚡ PayID</span>
+  </div>
+</div>
+
 <script src="js/age-gate.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
@@ -129,6 +176,7 @@
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
 <script src="js/shipping.js"></script>
+<script src="js/products.js"></script>
 <script>
 document.getElementById('newsletter-form').addEventListener('submit', async (e) => {
   e.preventDefault();

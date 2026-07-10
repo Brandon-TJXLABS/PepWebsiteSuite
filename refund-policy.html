@@ -36,7 +36,7 @@
   <div class="wrap" style="max-width:760px; font-size:.95rem; color:var(--ink-soft); line-height:1.75;">
 
     <h2 style="font-size:1.2rem; color:var(--blue-deep); margin-top:32px;">1. Order processing</h2>
-    <p>Orders are processed once payment is confirmed. Because we accept crypto, bank transfer, and Wise, confirmation times vary — crypto typically confirms within the hour, bank transfers and Wise can take 1–2 business days depending on your bank. Your order status is visible in your account at all times.</p>
+    <p>Orders are processed once payment is confirmed. Because we accept bank transfer and PayID, confirmation times vary — bank transfers can take 1–2 business days depending on your bank, PayID is typically instant. Your order status is visible in your account at all times.</p>
 
     <h2 style="font-size:1.2rem; color:var(--blue-deep); margin-top:32px;">2. Shipping timeframes</h2>
     <p>Orders are dispatched within [X] business days of payment confirmation. Delivery within Australia typically takes [X–X] business days depending on location. International shipping timeframes vary by destination. Shipping costs, if any, are shown at checkout before you confirm your order.</p>
@@ -92,6 +92,7 @@
         <ul>
           <li><a href="mailto:hello@aciona.example">hello@aciona.example</a></li>
           <li>Mon–Fri, 9am–5pm</li>
+          <li>Sydney, NSW 2000 Australia</li>
         </ul>
       </div>
     </div>
@@ -104,6 +105,14 @@
     </div>
   </div>
 </footer>
+
+<div class="payment-strip">
+  <div class="wrap">
+    <span>We accept:</span>
+    <span class="payment-badge">🏦 Bank Transfer</span>
+    <span class="payment-badge">⚡ PayID</span>
+  </div>
+</div>
 
 <script src="js/age-gate.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

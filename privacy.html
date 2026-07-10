@@ -53,7 +53,7 @@
     <p>Account, order, and cart data is stored with Supabase, a database and authentication provider, in a data centre located in Southeast Asia (Singapore). Supabase acts as our data processor and maintains its own security and compliance standards. This website itself is hosted on GitHub Pages.</p>
 
     <h2 style="font-size:1.2rem; color:var(--blue-deep); margin-top:32px;">5. Payment information</h2>
-    <p>We do not directly collect or store card numbers or full payment credentials on this site. Depending on the payment method you choose at checkout (crypto, bank transfer, or Wise), payment is completed directly between you and that payment provider, according to their own privacy and security practices.</p>
+    <p>We do not directly collect or store card numbers or full payment credentials on this site. Depending on the payment method you choose at checkout (bank transfer or PayID), payment is completed directly between you and that payment provider, according to their own privacy and security practices.</p>
 
     <h2 style="font-size:1.2rem; color:var(--blue-deep); margin-top:32px;">6. Cookies and local storage</h2>
     <p>This site uses minimal local browser storage to keep you logged in and to support core functionality such as your cart. We do not use third-party advertising or tracking cookies.</p>
@@ -103,6 +103,7 @@
         <ul>
           <li><a href="mailto:hello@aciona.example">hello@aciona.example</a></li>
           <li>Mon–Fri, 9am–5pm</li>
+          <li>Sydney, NSW 2000 Australia</li>
         </ul>
       </div>
     </div>
@@ -115,6 +116,14 @@
     </div>
   </div>
 </footer>
+
+<div class="payment-strip">
+  <div class="wrap">
+    <span>We accept:</span>
+    <span class="payment-badge">🏦 Bank Transfer</span>
+    <span class="payment-badge">⚡ PayID</span>
+  </div>
+</div>
 
 <script src="js/age-gate.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
