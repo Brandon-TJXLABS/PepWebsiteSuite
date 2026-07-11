@@ -92,13 +92,14 @@ a.brand:hover{text-decoration:none; opacity:.85;}
 
 /* ---------- Hero banner (full-width photo + bottom content card) ---------- */
 .hero-banner{
-  /* Matches the source photo's real pixel ratio (1774x887) exactly, so
+  /* Matches the source photo's real pixel ratio (1774x763, cropped from
+     the original 1774x887 on 2026-07-11 to trim excess sky/foreground
+     while keeping the vials fully in frame) exactly, so
      background-size:cover never has to crop anything -- the banner's
      shape always matches the image's shape. Trade-off: on very wide
-     screens this makes the banner noticeably taller (a 1920px-wide
-     screen gets a ~960px-tall banner) since that's what "never crop"
-     requires at that aspect ratio. */
-  aspect-ratio:1774/887;
+     screens this makes the banner noticeably taller than a plain fixed
+     height would, since that's what "never crop" requires at this ratio. */
+  aspect-ratio:1774/763;
   min-height:420px;
   padding:64px 0;
   display:flex;
