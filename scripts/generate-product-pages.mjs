@@ -194,6 +194,7 @@ function renderProductPage(p) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="${escapeAttr(metaDesc)}">
 <link rel="canonical" href="${url}">
@@ -304,7 +305,7 @@ function renderProductPage(p) {
       <div>
         <h4>Contact</h4>
         <ul>
-          <li><a href="mailto:hello@aciona.example">hello@aciona.example</a></li>
+          <li><a href="mailto:hello@acionaco.com">hello@acionaco.com</a></li>
           <li>Mon–Fri, 9am–5pm</li>
           <li>Sydney, NSW 2000 Australia</li>
         </ul>
@@ -323,7 +324,7 @@ function renderProductPage(p) {
 <div class="payment-strip">
   <div class="wrap">
     <span>We accept:</span>
-    <span class="payment-badge">🏦 Bank Transfer</span>
+    <span class="payment-badge"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><polygon points="12 2 20 7 4 7"/><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/></svg> Bank Transfer</span>
     <span class="payment-badge">⚡ PayID</span>
   </div>
 </div>

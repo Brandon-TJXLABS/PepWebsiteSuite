@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <meta name="robots" content="noindex, nofollow">
 <title>Admin — Aciona</title>
 <link rel="stylesheet" href="styles.css">
@@ -30,7 +31,12 @@
   <div class="wrap">
     <div class="eyebrow">Admin</div>
     <h1>Admin dashboard</h1>
-    <p style="color:var(--ink-soft); margin-top:-8px;">Orders, products, checkout settings, inbox, and lab results — everything in one place.</p>
+    <p style="color:var(--ink-soft); margin-top:-8px;">Orders, products, checkout settings, inbox, lab results, customers, and analytics — everything in one place.</p>
+
+    <div id="payment-config-warning" class="card" style="display:none; margin-top:24px; border-color:#B3261E; background:#fdf1f0;">
+      <strong style="color:#B3261E;">⚠ Checkout is live but no payment method is configured.</strong>
+      <span style="color:var(--ink-soft);"> Customers can place orders but you have no way to receive payment. Set bank transfer details or a PayID in Checkout Settings.</span>
+    </div>
 
     <div id="stats-row" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-top:24px;">
       <div class="card" style="padding:18px 20px;">
@@ -45,6 +51,10 @@
         <div class="code mono" style="color:var(--ink-soft);">Low stock products</div>
         <div id="stat-lowstock" style="font-family:'Space Grotesk',sans-serif; font-size:1.8rem; font-weight:700; color:#B8860B; margin-top:4px;">—</div>
       </div>
+      <div class="card" style="padding:18px 20px;">
+        <div class="code mono" style="color:var(--ink-soft);">Unpaid 48h+</div>
+        <div id="stat-stale-unpaid" style="font-family:'Space Grotesk',sans-serif; font-size:1.8rem; font-weight:700; color:#B3261E; margin-top:4px;">—</div>
+      </div>
     </div>
   </div>
 </section>
@@ -52,18 +62,23 @@
 <section style="padding-top:24px; padding-bottom:40px;">
   <div class="wrap">
     <div class="admin-tabs">
-      <button class="admin-tab-btn active" data-tab="orders" onclick="acionaShowAdminTab('orders')">Orders</button>
-      <button class="admin-tab-btn" data-tab="products" onclick="acionaShowAdminTab('products')">Products</button>
+      <button class="admin-tab-btn active" data-tab="orders" onclick="acionaShowAdminTab('orders')">Orders <span class="admin-tab-count" id="tab-count-orders"></span></button>
+      <button class="admin-tab-btn" data-tab="products" onclick="acionaShowAdminTab('products')">Products <span class="admin-tab-count" id="tab-count-products"></span></button>
       <button class="admin-tab-btn" data-tab="checkout-settings" onclick="acionaShowAdminTab('checkout-settings')">Checkout Settings</button>
-      <button class="admin-tab-btn" data-tab="inbox" onclick="acionaShowAdminTab('inbox')">Inbox</button>
+      <button class="admin-tab-btn" data-tab="inbox" onclick="acionaShowAdminTab('inbox')">Inbox <span class="admin-tab-count" id="tab-count-inbox"></span></button>
       <button class="admin-tab-btn" data-tab="lab-results" onclick="acionaShowAdminTab('lab-results')">Lab Results</button>
+      <button class="admin-tab-btn" data-tab="customers" onclick="acionaShowAdminTab('customers')">Customers</button>
+      <button class="admin-tab-btn" data-tab="analytics" onclick="acionaShowAdminTab('analytics')">Analytics</button>
     </div>
 
     <!-- ===== Orders ===== -->
     <div id="tab-orders" class="admin-tab-panel">
       <div class="section-head" style="margin-bottom:24px; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;">
         <div class="eyebrow" style="margin-bottom:0;">Orders</div>
-        <button class="btn btn-outline" id="export-csv-btn" style="padding:8px 16px; font-size:.85rem;">Export CSV</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-outline" id="bulk-cancel-stale-btn" style="padding:8px 16px; font-size:.85rem; color:#B3261E; border-color:#B3261E;">Cancel all stale unpaid</button>
+          <button class="btn btn-outline" id="export-csv-btn" style="padding:8px 16px; font-size:.85rem;">Export CSV</button>
+        </div>
       </div>
 
       <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:24px;">
@@ -93,6 +108,28 @@
     <!-- ===== Products ===== -->
     <div id="tab-products" class="admin-tab-panel" style="display:none;">
       <div class="section-head" style="margin-bottom:24px;"><div class="eyebrow">Products</div></div>
+
+      <div class="admin-subhead">Add a new product</div>
+      <form id="new-product-form" class="contact-form" style="max-width:640px; margin-bottom:32px;" onsubmit="return false;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;">
+          <div class="field" style="margin:0;"><label for="np-sku">SKU</label><input type="text" id="np-sku" placeholder="AC-XXXX"></div>
+          <div class="field" style="margin:0;"><label for="np-name">Name</label><input type="text" id="np-name"></div>
+          <div class="field" style="margin:0;"><label for="np-price">Price (AUD)</label><input type="number" step="0.01" min="0" id="np-price"></div>
+          <div class="field" style="margin:0;"><label for="np-stock">Stock quantity</label><input type="number" min="0" id="np-stock" value="0"></div>
+        </div>
+        <div class="field" style="margin:12px 0 0;">
+          <label for="np-description">Description</label>
+          <textarea id="np-description" rows="2"></textarea>
+        </div>
+        <div class="field" style="margin:12px 0 0; display:flex; align-items:center; gap:8px;">
+          <label style="margin:0;"><input type="checkbox" id="np-active" checked> Active (visible on storefront immediately)</label>
+        </div>
+        <button class="btn btn-primary" id="add-product-btn" type="button" style="margin-top:14px;">Add product</button>
+        <span class="admin-new-product-feedback" style="font-size:.85rem; display:none; margin-left:10px;"></span>
+      </form>
+
+      <div id="featured-summary-container" style="margin-bottom:24px;"></div>
+
       <div id="products-container">
         <p style="color:var(--ink-soft);">Loading products…</p>
       </div>
@@ -150,13 +187,28 @@
     <div id="tab-inbox" class="admin-tab-panel" style="display:none;">
       <div class="section-head" style="margin-bottom:24px;"><div class="eyebrow">Inbox</div></div>
 
-      <div class="admin-subhead">Contact messages</div>
+      <div class="admin-subhead" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <span>Contact messages</span>
+        <label style="font-size:.78rem; font-weight:400; color:var(--ink-soft); display:flex; align-items:center; gap:6px;">
+          <input type="checkbox" id="inbox-contact-unhandled-only" checked> Unhandled only
+        </label>
+      </div>
       <div id="inbox-contact-container" style="margin-bottom:40px;"><p style="color:var(--ink-soft);">Loading…</p></div>
 
-      <div class="admin-subhead">Product requests</div>
+      <div class="admin-subhead" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <span>Product requests</span>
+        <label style="font-size:.78rem; font-weight:400; color:var(--ink-soft); display:flex; align-items:center; gap:6px;">
+          <input type="checkbox" id="inbox-requests-unhandled-only" checked> Unhandled only
+        </label>
+      </div>
       <div id="inbox-requests-container" style="margin-bottom:40px;"><p style="color:var(--ink-soft);">Loading…</p></div>
 
-      <div class="admin-subhead">Stock notification signups</div>
+      <div class="admin-subhead" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <span>Stock notification signups</span>
+        <label style="font-size:.78rem; font-weight:400; color:var(--ink-soft); display:flex; align-items:center; gap:6px;">
+          <input type="checkbox" id="inbox-stock-unhandled-only" checked> Unhandled only
+        </label>
+      </div>
       <div id="inbox-stock-container"><p style="color:var(--ink-soft);">Loading…</p></div>
     </div>
 
@@ -201,6 +253,33 @@
       <div id="lab-results-container"><p style="color:var(--ink-soft);">Loading…</p></div>
     </div>
 
+    <!-- ===== Customers ===== -->
+    <div id="tab-customers" class="admin-tab-panel" style="display:none;">
+      <div class="section-head" style="margin-bottom:24px;"><div class="eyebrow">Customers</div></div>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:24px;">
+        <div class="field" style="margin:0; min-width:220px;">
+          <label for="customer-sort">Sort by</label>
+          <select id="customer-sort">
+            <option value="spend" selected>Lifetime spend (high to low)</option>
+            <option value="orders">Order count (high to low)</option>
+            <option value="recent">Most recent order</option>
+            <option value="name">Name (A–Z)</option>
+          </select>
+        </div>
+        <div class="field" style="margin:0; flex:1; min-width:220px;">
+          <label for="customer-search">Search by name or email</label>
+          <input type="text" id="customer-search" placeholder="e.g. jane@example.com">
+        </div>
+      </div>
+      <div id="customers-container"><p style="color:var(--ink-soft);">Loading customers…</p></div>
+    </div>
+
+    <!-- ===== Analytics ===== -->
+    <div id="tab-analytics" class="admin-tab-panel" style="display:none;">
+      <div class="section-head" style="margin-bottom:24px;"><div class="eyebrow">Analytics</div></div>
+      <div id="analytics-container"><p style="color:var(--ink-soft);">Loading analytics…</p></div>
+    </div>
+
   </div>
 </section>
 
@@ -217,10 +296,17 @@
 let allOrders = [];
 let allProducts = [];
 let allLabResults = [];
+let allContactMessages = [];
+let allProductRequests = [];
+let allStockNotifications = [];
+let allCustomers = [];
+let paymentSettingsRow = null;
+const expandedOrderIds = new Set();
 
 const ORDER_STATUSES = ['pending_payment', 'awaiting_shipping_quote', 'paid', 'shipped', 'cancelled'];
 const LOW_STOCK_THRESHOLD = 5; // must match js/products.js
 const STALE_UNPAID_HOURS = 48;
+const ANALYTICS_WINDOW_DAYS = 30;
 
 function statusColor(status) {
   if (status === 'paid' || status === 'shipped') return 'var(--verified)';
@@ -316,80 +402,98 @@ function renderOrders() {
     const isCancelled = order.status === 'cancelled';
     const isShipped = order.status === 'shipped';
     const isPaid = order.status === 'paid' || isShipped;
+    const isExpanded = expandedOrderIds.has(order.id);
 
     return `
-    <div class="card" style="margin-bottom:16px; ${stale ? 'border-color:#B3261E;' : ''}" data-order-id="${order.id}">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
-        <div class="code mono">Order #${displayNumber}</div>
-        <div style="display:flex; align-items:center; gap:10px;">
+    <div class="card" style="margin-bottom:12px; ${stale ? 'border-color:#B3261E;' : ''}" data-order-id="${order.id}">
+      <div class="admin-order-summary-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+          <div class="code mono">Order #${displayNumber}</div>
+          <span style="font-size:.85rem; color:var(--ink-soft);">${customer.full_name || '<span class="empty">No name on file</span>'}</span>
+          <span class="code mono" style="font-size:.75rem; color:var(--ink-soft);">${acionaTimeElapsed(order.created_at)}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
           ${stale ? '<span style="font-size:.72rem; font-weight:700; color:#B3261E; text-transform:uppercase;">Unpaid 48h+</span>' : ''}
           ${isCancelled ? `<span class="pass" style="color:${statusColor('cancelled')};">CANCELLED</span>` : ''}
           ${!isCancelled && isPaid ? '<span class="pass">Paid</span>' : ''}
           ${!isCancelled && isShipped ? '<span class="pass">Shipped</span>' : ''}
           ${!isCancelled && !isPaid ? `<span class="pass" style="color:${statusColor(order.status)};">${order.status.replace(/_/g, ' ').toUpperCase()}</span>` : ''}
+          <span class="value" style="font-weight:600;">${moneyFromCents(grandTotal)}${hasShipping ? '' : ' + shipping'}</span>
+          <button class="btn btn-outline admin-toggle-expand" style="padding:6px 12px; font-size:.78rem;">${isExpanded ? 'Collapse' : 'Details'}</button>
         </div>
       </div>
 
-      <div style="font-size:.78rem; color:var(--ink-soft); margin-bottom:4px;">
-        Placed ${new Date(order.created_at).toLocaleString('en-AU')} · ${acionaTimeElapsed(order.created_at)}
-      </div>
-      <div style="font-size:.88rem; color:var(--ink-soft); margin-bottom:12px;">
-        ${customer.full_name || '<span class="empty">No name on file</span>'} ·
-        ${customer.email || '<span class="empty">No email on file</span>'}
-        ${customer.phone ? ' · ' + customer.phone : ''}
-      </div>
+      ${isExpanded ? `
+      <div class="admin-order-detail" style="margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);">
+        <div style="font-size:.78rem; color:var(--ink-soft); margin-bottom:4px;">
+          Placed ${new Date(order.created_at).toLocaleString('en-AU')} · ${acionaTimeElapsed(order.created_at)}
+        </div>
+        <div style="font-size:.88rem; color:var(--ink-soft); margin-bottom:12px;">
+          ${customer.full_name || '<span class="empty">No name on file</span>'} ·
+          ${customer.email || '<span class="empty">No email on file</span>'}
+          ${customer.phone ? ' · ' + customer.phone : ''}
+        </div>
 
-      ${order.order_items.map(item => `
-        <div class="coa-row">
-          <span class="label">${item.product_name} × ${item.quantity}</span>
-          <span class="value">${moneyFromCents(item.price_cents * item.quantity)}</span>
-        </div>
-      `).join('')}
-      <div class="coa-row"><span class="label">Subtotal</span><span class="value">${moneyFromCents(order.total_cents)}</span></div>
-      <div class="coa-row"><span class="label">Shipping</span><span class="value">${hasShipping ? moneyFromCents(order.shipping_cents) : 'Awaiting quote'}</span></div>
-      <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">${moneyFromCents(grandTotal)}${hasShipping ? '' : ' + shipping'}</span></div>
+        ${order.order_items.map(item => `
+          <div class="coa-row">
+            <span class="label">${item.product_name} × ${item.quantity}</span>
+            <span class="value">${moneyFromCents(item.price_cents * item.quantity)}</span>
+          </div>
+        `).join('')}
+        <div class="coa-row"><span class="label">Subtotal</span><span class="value">${moneyFromCents(order.total_cents)}</span></div>
+        <div class="coa-row"><span class="label">Shipping</span><span class="value">${hasShipping ? moneyFromCents(order.shipping_cents) : 'Awaiting quote'}</span></div>
+        <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">${moneyFromCents(grandTotal)}${hasShipping ? '' : ' + shipping'}</span></div>
 
-      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:14px;">
-        ${!isPaid && !isCancelled ? '<button class="btn btn-outline admin-quick-paid" style="padding:8px 14px; font-size:.82rem;">Mark Paid</button>' : ''}
-        ${!isShipped && !isCancelled ? '<button class="btn btn-outline admin-quick-shipped" style="padding:8px 14px; font-size:.82rem;">Mark Shipped</button>' : ''}
-        ${!isCancelled && !isShipped ? '<button class="btn btn-outline admin-quick-cancel" style="padding:8px 14px; font-size:.82rem; color:#B3261E; border-color:#B3261E;">Cancel</button>' : ''}
-        <button class="btn btn-outline admin-resend-confirmation" style="padding:8px 14px; font-size:.82rem;">Resend confirmation</button>
-        ${isShipped ? '<button class="btn btn-outline admin-resend-shipped" style="padding:8px 14px; font-size:.82rem;">Resend shipped email</button>' : ''}
-      </div>
-      <span class="admin-quick-feedback" style="font-size:.85rem; display:none; margin-top:8px;"></span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:14px;">
+          ${!isPaid && !isCancelled ? '<button class="btn btn-outline admin-quick-paid" style="padding:8px 14px; font-size:.82rem;">Mark Paid</button>' : ''}
+          ${!isShipped && !isCancelled ? '<button class="btn btn-outline admin-quick-shipped" style="padding:8px 14px; font-size:.82rem;">Mark Shipped</button>' : ''}
+          ${!isCancelled && !isShipped ? '<button class="btn btn-outline admin-quick-cancel" style="padding:8px 14px; font-size:.82rem; color:#B3261E; border-color:#B3261E;">Cancel</button>' : ''}
+          <button class="btn btn-outline admin-resend-confirmation" style="padding:8px 14px; font-size:.82rem;">Resend confirmation</button>
+          ${isShipped ? '<button class="btn btn-outline admin-resend-shipped" style="padding:8px 14px; font-size:.82rem;">Resend shipped email</button>' : ''}
+        </div>
+        <span class="admin-quick-feedback" style="font-size:.85rem; display:none; margin-top:8px;"></span>
 
-      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:16px; padding-top:16px; border-top:1px dashed var(--line);">
-        <div class="field" style="margin:0;">
-          <label>Status</label>
-          <select class="admin-status">
-            ${ORDER_STATUSES.map(s => `<option value="${s}" ${s === order.status ? 'selected' : ''}>${s.replace(/_/g, ' ')}</option>`).join('')}
-          </select>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:16px; padding-top:16px; border-top:1px dashed var(--line);">
+          <div class="field" style="margin:0;">
+            <label>Status</label>
+            <select class="admin-status">
+              ${ORDER_STATUSES.map(s => `<option value="${s}" ${s === order.status ? 'selected' : ''}>${s.replace(/_/g, ' ')}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field" style="margin:0;">
+            <label>Tracking number</label>
+            <input type="text" class="admin-tracking" value="${order.tracking_number || ''}">
+          </div>
+          <div class="field" style="margin:0;">
+            <label>Shipped date</label>
+            <input type="date" class="admin-shipped-at" value="${order.shipped_at ? order.shipped_at.slice(0, 10) : ''}">
+          </div>
+          <div class="field" style="margin:0;">
+            <label>Shipping (AUD)</label>
+            <input type="number" step="0.01" min="0" class="admin-shipping-cents" value="${hasShipping ? (order.shipping_cents / 100).toFixed(2) : ''}">
+          </div>
         </div>
-        <div class="field" style="margin:0;">
-          <label>Tracking number</label>
-          <input type="text" class="admin-tracking" value="${order.tracking_number || ''}">
+        <div class="field" style="margin:12px 0 0;">
+          <label>Internal notes (not shown to customer)</label>
+          <textarea class="admin-notes" rows="2">${order.notes || ''}</textarea>
         </div>
-        <div class="field" style="margin:0;">
-          <label>Shipped date</label>
-          <input type="date" class="admin-shipped-at" value="${order.shipped_at ? order.shipped_at.slice(0, 10) : ''}">
-        </div>
-        <div class="field" style="margin:0;">
-          <label>Shipping (AUD)</label>
-          <input type="number" step="0.01" min="0" class="admin-shipping-cents" value="${hasShipping ? (order.shipping_cents / 100).toFixed(2) : ''}">
+        <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+          <button class="btn btn-primary admin-save-order" style="padding:10px 20px; font-size:.88rem;">Save</button>
+          <span class="admin-order-feedback" style="font-size:.85rem; display:none;"></span>
         </div>
       </div>
-      <div class="field" style="margin:12px 0 0;">
-        <label>Internal notes (not shown to customer)</label>
-        <textarea class="admin-notes" rows="2">${order.notes || ''}</textarea>
-      </div>
-      <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
-        <button class="btn btn-primary admin-save-order" style="padding:10px 20px; font-size:.88rem;">Save</button>
-        <span class="admin-order-feedback" style="font-size:.85rem; display:none;"></span>
-      </div>
+      ` : ''}
     </div>
   `;
   }).join('');
 
+  container.querySelectorAll('.admin-toggle-expand').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = e.target.closest('.card').dataset.orderId;
+      if (expandedOrderIds.has(id)) expandedOrderIds.delete(id); else expandedOrderIds.add(id);
+      renderOrders();
+    });
+  });
   container.querySelectorAll('.admin-save-order').forEach(btn => {
     btn.addEventListener('click', (e) => saveOrder(e.target.closest('.card')));
   });
@@ -420,6 +524,23 @@ function renderOrders() {
   container.querySelectorAll('.admin-resend-shipped').forEach(btn => {
     btn.addEventListener('click', (e) => resendOrderEmail(e.target.closest('.card'), 'shipped'));
   });
+}
+
+async function bulkCancelStaleOrders() {
+  const stale = allOrders.filter(isStaleUnpaid);
+  if (stale.length === 0) { alert('No stale unpaid orders to cancel.'); return; }
+  if (!confirm(`Cancel ${stale.length} unpaid order(s) older than ${STALE_UNPAID_HOURS}h? This cannot be undone.`)) return;
+
+  const ids = stale.map(o => o.id);
+  const { error } = await supabaseClient.from('orders').update({ status: 'cancelled' }).in('id', ids);
+  if (error) { alert('Bulk cancel failed.'); console.error(error); return; }
+
+  ids.forEach(id => {
+    const idx = allOrders.findIndex(o => o.id === id);
+    if (idx !== -1) allOrders[idx].status = 'cancelled';
+  });
+  renderOrders();
+  renderStats();
 }
 
 async function quickUpdateOrder(card, updates) {
@@ -518,6 +639,39 @@ function renderStats() {
 
   const lowStock = allProducts.filter(p => p.stock_quantity <= LOW_STOCK_THRESHOLD).length;
   document.getElementById('stat-lowstock').textContent = lowStock;
+
+  const staleCount = allOrders.filter(isStaleUnpaid).length;
+  document.getElementById('stat-stale-unpaid').textContent = staleCount;
+
+  updateTabCounts();
+}
+
+function hasUsablePaymentMethod(p) {
+  if (!p) return false;
+  const hasBankTransfer = !!(p.bank_account_name && p.bank_bsb && p.bank_account_number);
+  const hasPayid = !!p.payid;
+  return hasBankTransfer || hasPayid;
+}
+
+function renderPaymentConfigWarning() {
+  const warning = document.getElementById('payment-config-warning');
+  warning.style.display = hasUsablePaymentMethod(paymentSettingsRow) ? 'none' : 'block';
+}
+
+function updateTabCounts() {
+  const ordersCountEl = document.getElementById('tab-count-orders');
+  if (ordersCountEl) ordersCountEl.textContent = allOrders.filter(isOpenOrder).length || '';
+
+  const productsCountEl = document.getElementById('tab-count-products');
+  if (productsCountEl) productsCountEl.textContent = allProducts.filter(p => p.stock_quantity <= LOW_STOCK_THRESHOLD).length || '';
+
+  const inboxCountEl = document.getElementById('tab-count-inbox');
+  if (inboxCountEl) {
+    const unhandled = allContactMessages.filter(m => !m.handled).length
+      + allProductRequests.filter(r => !r.handled).length
+      + allStockNotifications.filter(s => !s.handled).length;
+    inboxCountEl.textContent = unhandled || '';
+  }
 }
 
 function exportOrdersCsv() {
@@ -594,9 +748,30 @@ async function loadProducts() {
   (costs || []).forEach(c => { costsByProductId[c.product_id] = c; });
 
   allProducts = products.map(p => ({ ...p, _cost: costsByProductId[p.id] || null }));
+  renderFeaturedSummary();
   renderProducts();
   renderStats();
   populateLabResultProductPicker();
+}
+
+function renderFeaturedSummary() {
+  const container = document.getElementById('featured-summary-container');
+  const featured = allProducts.filter(p => p.featured_rank != null).sort((a, b) => a.featured_rank - b.featured_rank);
+  if (featured.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = `
+    <div class="admin-subhead">Featured (Top Sellers)</div>
+    <div class="card" style="padding:14px 20px;">
+      ${featured.map(p => `
+        <div class="coa-row">
+          <span class="label">#${p.featured_rank} — ${p.name}</span>
+          <span class="value">${moneyFromCents(p.price_cents)}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 function getProductCost(product) {
@@ -629,7 +804,8 @@ function renderProducts() {
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:12px;">
+      <div class="admin-card-section-label" style="border-top:none; padding-top:0; margin-top:12px;">Storefront</div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;">
         <div class="field" style="margin:0;">
           <label>Price (AUD)</label>
           <input type="number" step="0.01" min="0" class="admin-price" value="${(product.price_cents / 100).toFixed(2)}">
@@ -659,7 +835,8 @@ function renderProducts() {
         <textarea class="admin-description" rows="3">${product.description || ''}</textarea>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:16px; padding-top:16px; border-top:1px dashed var(--line);">
+      <div class="admin-card-section-label">Internal cost tracking</div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;">
         <div class="field" style="margin:0;">
           <label>Pack cost (AUD)</label>
           <input type="number" step="0.01" min="0" class="admin-pack-cost" value="${(packCostCents / 100).toFixed(2)}">
@@ -733,6 +910,8 @@ async function saveProduct(card) {
 // ---------- Checkout Settings ----------
 async function loadCheckoutSettings() {
   const { data: payment } = await supabaseClient.from('payment_settings').select('*').maybeSingle();
+  paymentSettingsRow = payment || null;
+  renderPaymentConfigWarning();
   if (payment) {
     document.getElementById('ps-bank-name').value = payment.bank_account_name || '';
     document.getElementById('ps-bank-bsb').value = payment.bank_bsb || '';
@@ -767,6 +946,10 @@ async function savePaymentSettings() {
   feedback.style.color = error ? '#B3261E' : 'var(--verified)';
   feedback.textContent = error ? 'Save failed.' : 'Saved.';
   if (error) console.error(error);
+  if (!error) {
+    paymentSettingsRow = { ...paymentSettingsRow, ...updates };
+    renderPaymentConfigWarning();
+  }
 }
 
 async function saveShippingSettings() {
@@ -790,13 +973,23 @@ async function saveShippingSettings() {
 }
 
 // ---------- Inbox ----------
-function renderInboxList(containerId, rows, template, emptyMessage) {
+function inboxArrayForTable(table) {
+  if (table === 'contact_messages') return allContactMessages;
+  if (table === 'product_requests') return allProductRequests;
+  return allStockNotifications;
+}
+
+function renderInboxList(containerId, rows, template, emptyMessage, filterCheckboxId) {
   const container = document.getElementById(containerId);
-  if (!rows || rows.length === 0) {
-    container.innerHTML = `<p style="color:var(--ink-soft);">${emptyMessage}</p>`;
+  const unhandledOnly = document.getElementById(filterCheckboxId).checked;
+  const visible = unhandledOnly ? rows.filter(r => !r.handled) : rows;
+
+  if (!visible || visible.length === 0) {
+    container.innerHTML = `<p style="color:var(--ink-soft);">${unhandledOnly && rows.length > 0 ? 'No unhandled entries.' : emptyMessage}</p>`;
     return;
   }
-  container.innerHTML = rows.map(template).join('');
+  container.innerHTML = visible.map(template).join('');
+
   container.querySelectorAll('.admin-inbox-delete').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       if (!confirm('Delete this entry?')) return;
@@ -805,14 +998,32 @@ function renderInboxList(containerId, rows, template, emptyMessage) {
       const id = card.dataset.id;
       const { error } = await supabaseClient.from(table).delete().eq('id', id);
       if (error) { alert('Delete failed.'); console.error(error); return; }
+      const arr = inboxArrayForTable(table);
+      const idx = arr.findIndex(r => r.id === id);
+      if (idx !== -1) arr.splice(idx, 1);
       card.remove();
+      updateTabCounts();
+    });
+  });
+
+  container.querySelectorAll('.admin-inbox-toggle-handled').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const card = e.target.closest('.card');
+      const table = e.target.dataset.table;
+      const id = card.dataset.id;
+      const newHandled = e.target.dataset.handled !== 'true';
+      const { error } = await supabaseClient.from(table).update({ handled: newHandled }).eq('id', id);
+      if (error) { alert('Update failed.'); console.error(error); return; }
+      const arr = inboxArrayForTable(table);
+      const row = arr.find(r => r.id === id);
+      if (row) row.handled = newHandled;
+      renderInbox();
     });
   });
 }
 
-async function loadInbox() {
-  const { data: messages } = await supabaseClient.from('contact_messages').select('*').order('created_at', { ascending: false });
-  renderInboxList('inbox-contact-container', messages, (m) => `
+function renderInbox() {
+  renderInboxList('inbox-contact-container', allContactMessages, (m) => `
     <div class="card" style="margin-bottom:12px;" data-id="${m.id}">
       <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">
         <strong>${m.name}</strong>
@@ -820,12 +1031,14 @@ async function loadInbox() {
       </div>
       <div style="font-size:.85rem; color:var(--ink-soft); margin:4px 0 8px;">${m.email}${m.topic ? ' · ' + m.topic : ''}</div>
       <p style="margin:0 0 10px;">${m.message}</p>
-      <button class="btn btn-outline admin-inbox-delete" data-table="contact_messages" style="padding:6px 12px; font-size:.78rem;">Delete</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-outline admin-inbox-toggle-handled" data-table="contact_messages" data-handled="${m.handled}" style="padding:6px 12px; font-size:.78rem;">${m.handled ? 'Mark unhandled' : 'Mark handled'}</button>
+        <button class="btn btn-outline admin-inbox-delete" data-table="contact_messages" style="padding:6px 12px; font-size:.78rem;">Delete</button>
+      </div>
     </div>
-  `, 'No contact messages yet.');
+  `, 'No contact messages yet.', 'inbox-contact-unhandled-only');
 
-  const { data: requests } = await supabaseClient.from('product_requests').select('*').order('created_at', { ascending: false });
-  renderInboxList('inbox-requests-container', requests, (r) => `
+  renderInboxList('inbox-requests-container', allProductRequests, (r) => `
     <div class="card" style="margin-bottom:12px;" data-id="${r.id}">
       <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">
         <strong>${r.first_name} ${r.last_name || ''}</strong>
@@ -836,21 +1049,41 @@ async function loadInbox() {
       ${r.concentration ? `<div class="coa-row"><span class="label">Concentration</span><span class="value">${r.concentration}</span></div>` : ''}
       ${r.quantity ? `<div class="coa-row"><span class="label">Quantity</span><span class="value">${r.quantity}</span></div>` : ''}
       ${r.notes ? `<p style="margin:10px 0 0; font-size:.9rem;">${r.notes}</p>` : ''}
-      <button class="btn btn-outline admin-inbox-delete" data-table="product_requests" style="padding:6px 12px; font-size:.78rem; margin-top:10px;">Delete</button>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button class="btn btn-outline admin-inbox-toggle-handled" data-table="product_requests" data-handled="${r.handled}" style="padding:6px 12px; font-size:.78rem;">${r.handled ? 'Mark unhandled' : 'Mark handled'}</button>
+        <button class="btn btn-outline admin-inbox-delete" data-table="product_requests" style="padding:6px 12px; font-size:.78rem;">Delete</button>
+      </div>
     </div>
-  `, 'No product requests yet.');
+  `, 'No product requests yet.', 'inbox-requests-unhandled-only');
 
-  const { data: signups } = await supabaseClient.from('stock_notifications').select('*, products(name, sku)').order('created_at', { ascending: false });
-  renderInboxList('inbox-stock-container', signups, (s) => `
+  renderInboxList('inbox-stock-container', allStockNotifications, (s) => `
     <div class="card" style="margin-bottom:12px;" data-id="${s.id}">
       <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">
         <strong>${s.products?.name || 'Unknown product'}</strong>
         <span class="code mono" style="color:var(--ink-soft); font-size:.75rem;">${new Date(s.created_at).toLocaleString()}</span>
       </div>
       <div style="font-size:.85rem; color:var(--ink-soft);">${s.email}</div>
-      <button class="btn btn-outline admin-inbox-delete" data-table="stock_notifications" style="padding:6px 12px; font-size:.78rem; margin-top:10px;">Delete</button>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button class="btn btn-outline admin-inbox-toggle-handled" data-table="stock_notifications" data-handled="${s.handled}" style="padding:6px 12px; font-size:.78rem;">${s.handled ? 'Mark unhandled' : 'Mark handled'}</button>
+        <button class="btn btn-outline admin-inbox-delete" data-table="stock_notifications" style="padding:6px 12px; font-size:.78rem;">Delete</button>
+      </div>
     </div>
-  `, 'No stock notification signups yet.');
+  `, 'No stock notification signups yet.', 'inbox-stock-unhandled-only');
+
+  updateTabCounts();
+}
+
+async function loadInbox() {
+  const { data: messages } = await supabaseClient.from('contact_messages').select('*').order('created_at', { ascending: false });
+  allContactMessages = messages || [];
+
+  const { data: requests } = await supabaseClient.from('product_requests').select('*').order('created_at', { ascending: false });
+  allProductRequests = requests || [];
+
+  const { data: signups } = await supabaseClient.from('stock_notifications').select('*, products(name, sku)').order('created_at', { ascending: false });
+  allStockNotifications = signups || [];
+
+  renderInbox();
 }
 
 // ---------- Lab Results ----------
@@ -946,8 +1179,43 @@ async function deleteLabResult(card) {
 document.getElementById('order-status-filter').addEventListener('change', renderOrders);
 document.getElementById('order-search').addEventListener('input', renderOrders);
 document.getElementById('export-csv-btn').addEventListener('click', exportOrdersCsv);
+document.getElementById('bulk-cancel-stale-btn').addEventListener('click', bulkCancelStaleOrders);
 document.getElementById('save-payment-settings-btn').addEventListener('click', savePaymentSettings);
 document.getElementById('save-shipping-settings-btn').addEventListener('click', saveShippingSettings);
+document.getElementById('inbox-contact-unhandled-only').addEventListener('change', renderInbox);
+document.getElementById('inbox-requests-unhandled-only').addEventListener('change', renderInbox);
+document.getElementById('inbox-stock-unhandled-only').addEventListener('change', renderInbox);
+document.getElementById('customer-sort').addEventListener('change', renderCustomers);
+document.getElementById('customer-search').addEventListener('input', renderCustomers);
+document.getElementById('add-product-btn').addEventListener('click', async () => {
+  const feedback = document.querySelector('.admin-new-product-feedback');
+  const sku = document.getElementById('np-sku').value.trim();
+  const name = document.getElementById('np-name').value.trim();
+  const price_cents = Math.round(parseFloat(document.getElementById('np-price').value || '0') * 100);
+  const stock_quantity = parseInt(document.getElementById('np-stock').value, 10) || 0;
+  const description = document.getElementById('np-description').value || null;
+  const active = document.getElementById('np-active').checked;
+
+  feedback.style.display = 'inline';
+  if (!sku || !name || price_cents <= 0) {
+    feedback.style.color = '#B3261E';
+    feedback.textContent = 'SKU, name, and a price above $0 are required.';
+    return;
+  }
+
+  const { error } = await supabaseClient.from('products').insert({ sku, name, price_cents, stock_quantity, description, active });
+  if (error) {
+    feedback.style.color = '#B3261E';
+    feedback.textContent = error.code === '23505' ? 'That SKU already exists.' : 'Add failed.';
+    console.error(error);
+  } else {
+    feedback.style.color = 'var(--verified)';
+    feedback.textContent = 'Added — set cost fields below once loaded.';
+    document.getElementById('new-product-form').reset();
+    document.getElementById('np-active').checked = true;
+    await loadProducts();
+  }
+});
 document.getElementById('add-lab-result-btn').addEventListener('click', async () => {
   const feedback = document.querySelector('.admin-lab-add-feedback');
   const product_id = document.getElementById('lr-product').value;
@@ -981,6 +1249,119 @@ document.getElementById('add-lab-result-btn').addEventListener('click', async ()
   }
 });
 
+// ---------- Customers ----------
+async function loadCustomers() {
+  const { data: profiles, error } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
+  const container = document.getElementById('customers-container');
+  if (error) {
+    container.innerHTML = '<p style="color:var(--ink-soft);">Could not load customers.</p>';
+    console.error(error);
+    return;
+  }
+
+  const paidStatuses = new Set(['paid', 'shipped']);
+  allCustomers = profiles.map(p => {
+    const ordersForUser = allOrders.filter(o => o.user_id === p.id);
+    const paidOrders = ordersForUser.filter(o => paidStatuses.has(o.status));
+    const lifetimeSpendCents = paidOrders.reduce((sum, o) => sum + o.total_cents + (o.shipping_cents || 0), 0);
+    const lastOrderDate = ordersForUser.length
+      ? ordersForUser.reduce((latest, o) => o.created_at > latest ? o.created_at : latest, ordersForUser[0].created_at)
+      : null;
+    return { ...p, orderCount: ordersForUser.length, lifetimeSpendCents, lastOrderDate };
+  });
+
+  renderCustomers();
+}
+
+function renderCustomers() {
+  const container = document.getElementById('customers-container');
+  const sort = document.getElementById('customer-sort').value;
+  const search = document.getElementById('customer-search').value.trim().toLowerCase();
+
+  let filtered = allCustomers;
+  if (search) {
+    filtered = filtered.filter(c => {
+      const name = (c.full_name || '').toLowerCase();
+      const email = (c.email || '').toLowerCase();
+      return name.includes(search) || email.includes(search);
+    });
+  }
+
+  filtered = [...filtered].sort((a, b) => {
+    if (sort === 'orders') return b.orderCount - a.orderCount;
+    if (sort === 'recent') return (b.lastOrderDate || '').localeCompare(a.lastOrderDate || '');
+    if (sort === 'name') return (a.full_name || '').localeCompare(b.full_name || '');
+    return b.lifetimeSpendCents - a.lifetimeSpendCents;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="color:var(--ink-soft);">No matching customers.</p>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(c => `
+    <div class="card" style="margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+        <strong>${c.full_name || '<span class="empty">No name on file</span>'}</strong>
+        <span style="color:var(--ink-soft); font-size:.85rem;">${c.email || '<span class="empty">No email on file</span>'}</span>
+      </div>
+      <div class="coa-row"><span class="label">Orders placed</span><span class="value">${c.orderCount}</span></div>
+      <div class="coa-row"><span class="label">Lifetime spend (paid/shipped)</span><span class="value">${moneyFromCents(c.lifetimeSpendCents)}</span></div>
+      <div class="coa-row"><span class="label">Last order</span><span class="value">${c.lastOrderDate ? new Date(c.lastOrderDate).toLocaleDateString('en-AU') : '—'}</span></div>
+    </div>
+  `).join('');
+}
+
+// ---------- Analytics ----------
+async function loadAnalytics() {
+  const since = new Date(Date.now() - ANALYTICS_WINDOW_DAYS * 86400000).toISOString();
+  const { data, error } = await supabaseClient
+    .from('analytics_events')
+    .select('event_type, product_id, created_at')
+    .gte('created_at', since);
+
+  const container = document.getElementById('analytics-container');
+  if (error) {
+    container.innerHTML = '<p style="color:var(--ink-soft);">Could not load analytics.</p>';
+    console.error(error);
+    return;
+  }
+  renderAnalytics(data || []);
+}
+
+function renderAnalytics(events) {
+  const counts = { page_view: 0, add_to_cart: 0, checkout_start: 0, order_placed: 0 };
+  const addToCartCounts = {};
+  events.forEach(e => {
+    counts[e.event_type] = (counts[e.event_type] || 0) + 1;
+    if (e.event_type === 'add_to_cart' && e.product_id) {
+      addToCartCounts[e.product_id] = (addToCartCounts[e.product_id] || 0) + 1;
+    }
+  });
+
+  const topProductIds = Object.entries(addToCartCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const productNameById = {};
+  allProducts.forEach(p => { productNameById[p.id] = p.name; });
+
+  document.getElementById('analytics-container').innerHTML = `
+    <p style="color:var(--ink-soft); font-size:.85rem; margin-bottom:20px;">Last ${ANALYTICS_WINDOW_DAYS} days.</p>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:32px;">
+      ${Object.entries(counts).map(([type, n]) => `
+        <div class="card" style="padding:16px 18px;">
+          <div class="code mono" style="color:var(--ink-soft);">${type.replace(/_/g, ' ')}</div>
+          <div style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:700; color:var(--blue-deep);">${n}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="admin-subhead">Top products added to cart</div>
+    <div class="card" style="padding:14px 20px;">
+      ${topProductIds.length ? topProductIds.map(([id, n]) => `
+        <div class="coa-row"><span class="label">${productNameById[id] || 'Unknown product'}</span><span class="value">${n}</span></div>
+      `).join('') : '<p style="color:var(--ink-soft);">No add-to-cart events in this window.</p>'}
+    </div>
+  `;
+}
+
 async function loadAdminDashboard() {
   const user = await acionaRequireAdmin();
   if (!user) return;
@@ -989,6 +1370,8 @@ async function loadAdminDashboard() {
   await loadCheckoutSettings();
   await loadInbox();
   await loadLabResults();
+  await loadCustomers();
+  await loadAnalytics();
 }
 
 loadAdminDashboard();

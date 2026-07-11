@@ -605,6 +605,17 @@ footer a:hover{color:var(--blue-deep);}
 .admin-tab-btn.active{color:var(--blue-deep); border-bottom-color:var(--blue-deep);}
 .admin-tab-panel{padding-top:32px;}
 .admin-subhead{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.1rem; color:var(--blue-deep); margin-bottom:16px;}
+.admin-tab-count{
+  display:inline-block; min-width:1.4em; padding:1px 6px; margin-left:2px;
+  font-family:'IBM Plex Mono', monospace; font-size:.68rem; font-weight:700;
+  background:var(--blue-pale); color:var(--blue-deep); border-radius:10px;
+}
+.admin-tab-count:empty{display:none;}
+.admin-card-section-label{
+  font-family:'IBM Plex Mono', monospace; font-size:.72rem; font-weight:600;
+  text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft);
+  margin:16px 0 8px; padding-top:16px; border-top:1px dashed var(--line);
+}
 
 /* ---------- FAQ accordion ---------- */
 .faq-question{

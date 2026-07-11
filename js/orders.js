@@ -1,7 +1,7 @@
 // Shared between checkout.html (post-order confirmation) and account.html
 // (revisiting a still-unpaid order later) — not loaded sitewide. Exists so
 // the payment-instructions panel (a real chunk of logic: reference
-// formatting, GST calc, copy buttons) isn't duplicated across both files.
+// formatting, copy buttons) isn't duplicated across both files.
 
 function acionaOrderReference(order) {
   return order.order_number ? `AC-${order.order_number}` : order.id.slice(0, 8).toUpperCase();
@@ -10,11 +10,6 @@ function acionaOrderReference(order) {
 function acionaOrderGrandTotal(order) {
   const hasShipping = order.shipping_cents !== null && order.shipping_cents !== undefined;
   return order.total_cents + (hasShipping ? order.shipping_cents : 0);
-}
-
-// Assumes GST-inclusive AU retail pricing (price_cents already includes it).
-function acionaGstComponent(grandTotalCents) {
-  return Math.round(grandTotalCents / 11);
 }
 
 async function acionaCopyToClipboard(text, btnEl) {
@@ -46,14 +41,13 @@ function acionaCopyRow(label, value) {
 }
 
 // Full payment-instructions panel for a still-unpaid order — PayID + bank
-// transfer, both with the same reference/amount, plus a GST line and a
-// soft (non-automated) expiry warning. Used right after checkout AND later
+// transfer, both with the same reference/amount, plus a soft
+// (non-automated) expiry warning. Used right after checkout AND later
 // from account.html for any order still in pending_payment.
 function acionaRenderPaymentInstructions(order, paymentSettings) {
   const ref = acionaOrderReference(order);
   const grandTotal = acionaOrderGrandTotal(order);
   const amount = `$${(grandTotal / 100).toFixed(2)} AUD`;
-  const gst = `$${(acionaGstComponent(grandTotal) / 100).toFixed(2)} AUD`;
 
   return `
     <div class="disclaimer" style="background:#FFF8E1; border-color:#F0D999; margin:16px 0;">
@@ -105,7 +99,7 @@ function acionaRenderPaymentInstructions(order, paymentSettings) {
     </div>
 
     <p style="font-size:.8rem; color:var(--ink-soft); margin-top:12px;">
-      Please pay the exact amount shown (including cents) and use the reference above so we can match your payment automatically — you can also add your name in the payment description for extra clarity. Total includes GST: ${gst}.
+      Please pay the exact amount shown (including cents) and use the reference above so we can match your payment automatically — you can also add your name in the payment description for extra clarity.
     </p>
     <p style="font-size:.78rem; color:var(--ink-soft); margin-top:6px;">
       Your bank may hold the first payment to a new payee for up to 24 hours — this is normal and outside our control.

@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<title>Lab Results — Aciona</title>
+<meta name="robots" content="noindex, nofollow">
+<title>Page not found — Aciona</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -17,7 +18,7 @@
     <ul class="navlinks" id="nav-links">
       <li><a href="shop">Shop</a></li>
       <li><a href="about">About</a></li>
-      <li><a href="lab-results" class="active">Lab Results</a></li>
+      <li><a href="lab-results">Lab Results</a></li>
       <li><a href="product-request">Request a Product</a></li>
       <li><a href="contact">Contact</a></li>
       <li><a href="cart">Cart <span id="cart-count" class="cart-badge"></span></a></li>
@@ -26,65 +27,12 @@
   </nav>
 </header>
 
-<section class="hero" style="padding-bottom:56px;">
-  <div class="wrap">
-    <div class="eyebrow">Certificates of Analysis</div>
-    <h1 style="max-width:20ch;">Every batch, independently verified.</h1>
-    <p class="lede">Results below come from an independent third-party lab, published as each batch clears testing.</p>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div style="overflow-x:auto;">
-      <table class="results">
-        <thead>
-          <tr>
-            <th>Compound</th>
-            <th>Batch</th>
-            <th>Test date</th>
-            <th>Purity (HPLC)</th>
-            <th>Endotoxin</th>
-            <th>Result</th>
-            <th>Report</th>
-          </tr>
-        </thead>
-        <tbody id="lab-results-body">
-          <tr><td colspan="7" style="color:var(--ink-soft);">Loading lab results…</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<section class="alt">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">How testing works</div>
-      <h2>Our verification process</h2>
-    </div>
-    <div class="info-grid">
-      <div class="info-card">
-        <div class="eyebrow">Step 1</div>
-        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">A sample from every production batch is sent to an independent lab, unaffiliated with our suppliers.</p>
-      </div>
-      <div class="info-card">
-        <div class="eyebrow">Step 2</div>
-        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">HPLC testing confirms purity and identity. Endotoxin levels are measured separately.</p>
-      </div>
-      <div class="info-card">
-        <div class="eyebrow">Step 3</div>
-        <p style="color:var(--ink-soft); font-size:.92rem; margin:0;">Results are published here before the batch is listed for sale. Failed batches are discarded, not sold.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="disclaimer">
-      <strong>Research use only.</strong> Certificates of Analysis confirm chemical purity and identity only. They are not a safety or efficacy determination for human or animal use. All products are sold strictly for laboratory research purposes.
-    </div>
+<section class="hero" style="text-align:center; padding:100px 0;">
+  <div class="wrap" style="max-width:520px;">
+    <div class="eyebrow">404</div>
+    <h1>Page not found</h1>
+    <p class="lede">The page you're looking for doesn't exist, has moved, or the link was mistyped.</p>
+    <a href="/" class="btn btn-primary" style="margin-top:12px;">Back to homepage</a>
   </div>
 </section>
 
@@ -133,34 +81,8 @@
   </div>
 </footer>
 
-<div class="payment-strip">
-  <div class="wrap">
-    <span>We accept:</span>
-    <span class="payment-badge"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><polygon points="12 2 20 7 4 7"/><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/></svg> Bank Transfer</span>
-    <span class="payment-badge">⚡ PayID</span>
-  </div>
-</div>
-
 <script src="js/age-gate.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabaseClient.js"></script>
 <script src="js/nav.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/analytics.js"></script>
-<script src="js/cart.js"></script>
-<script src="js/shipping.js"></script>
-<script src="js/lab-results.js"></script>
-<!-- Cart drawer (side sheet) -->
-<div class="drawer-overlay" id="cart-drawer-overlay" onclick="if(event.target === this) acionaCloseCartDrawer()">
-  <div class="drawer-panel">
-    <div class="drawer-head">
-      <h3>Your cart</h3>
-      <button class="modal-close" onclick="acionaCloseCartDrawer()" aria-label="Close" style="position:static;">×</button>
-    </div>
-    <div class="drawer-body" id="cart-drawer-body"></div>
-    <div class="drawer-footer" id="cart-drawer-footer" style="display:none;"></div>
-  </div>
-</div>
 
 </body>
 </html>
