@@ -443,6 +443,7 @@ function renderOrders() {
         <div class="coa-row"><span class="label">Subtotal</span><span class="value">${moneyFromCents(order.total_cents)}</span></div>
         <div class="coa-row"><span class="label">Shipping</span><span class="value">${hasShipping ? moneyFromCents(order.shipping_cents) : 'Awaiting quote'}</span></div>
         <div class="coa-row"><span class="label"><strong>Total</strong></span><span class="value">${moneyFromCents(grandTotal)}${hasShipping ? '' : ' + shipping'}</span></div>
+        ${isCancelled && order.cancellation_reason ? `<div class="coa-row"><span class="label">Cancellation reason</span><span class="value">${order.cancellation_reason}</span></div>` : ''}
 
         <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:14px;">
           ${!isPaid && !isCancelled ? '<button class="btn btn-outline admin-quick-paid" style="padding:8px 14px; font-size:.82rem;">Mark Paid</button>' : ''}
@@ -450,6 +451,7 @@ function renderOrders() {
           ${!isCancelled && !isShipped ? '<button class="btn btn-outline admin-quick-cancel" style="padding:8px 14px; font-size:.82rem; color:#B3261E; border-color:#B3261E;">Cancel</button>' : ''}
           <button class="btn btn-outline admin-resend-confirmation" style="padding:8px 14px; font-size:.82rem;">Resend confirmation</button>
           ${isShipped ? '<button class="btn btn-outline admin-resend-shipped" style="padding:8px 14px; font-size:.82rem;">Resend shipped email</button>' : ''}
+          ${isCancelled ? '<button class="btn btn-outline admin-resend-cancellation" style="padding:8px 14px; font-size:.82rem;">Resend cancellation email</button>' : ''}
         </div>
         <span class="admin-quick-feedback" style="font-size:.85rem; display:none; margin-top:8px;"></span>
 
@@ -514,8 +516,9 @@ function renderOrders() {
   });
   container.querySelectorAll('.admin-quick-cancel').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      if (!confirm('Cancel this order?')) return;
-      quickUpdateOrder(e.target.closest('.card'), { status: 'cancelled' });
+      const reason = prompt('Reason for cancellation (optional, emailed to the customer):', '');
+      if (reason === null) return; // cancelled the prompt itself
+      quickUpdateOrder(e.target.closest('.card'), { status: 'cancelled', cancellation_reason: reason || null });
     });
   });
   container.querySelectorAll('.admin-resend-confirmation').forEach(btn => {
@@ -524,20 +527,28 @@ function renderOrders() {
   container.querySelectorAll('.admin-resend-shipped').forEach(btn => {
     btn.addEventListener('click', (e) => resendOrderEmail(e.target.closest('.card'), 'shipped'));
   });
+  container.querySelectorAll('.admin-resend-cancellation').forEach(btn => {
+    btn.addEventListener('click', (e) => resendOrderEmail(e.target.closest('.card'), 'cancelled'));
+  });
 }
 
 async function bulkCancelStaleOrders() {
   const stale = allOrders.filter(isStaleUnpaid);
   if (stale.length === 0) { alert('No stale unpaid orders to cancel.'); return; }
-  if (!confirm(`Cancel ${stale.length} unpaid order(s) older than ${STALE_UNPAID_HOURS}h? This cannot be undone.`)) return;
+
+  const reason = prompt(
+    `Reason for cancellation (emailed to all ${stale.length} affected customer(s)):`,
+    `Order was not paid within ${STALE_UNPAID_HOURS} hours and has been automatically cancelled.`
+  );
+  if (reason === null) return; // cancelled the prompt itself
 
   const ids = stale.map(o => o.id);
-  const { error } = await supabaseClient.from('orders').update({ status: 'cancelled' }).in('id', ids);
+  const { error } = await supabaseClient.from('orders').update({ status: 'cancelled', cancellation_reason: reason || null }).in('id', ids);
   if (error) { alert('Bulk cancel failed.'); console.error(error); return; }
 
   ids.forEach(id => {
     const idx = allOrders.findIndex(o => o.id === id);
-    if (idx !== -1) allOrders[idx].status = 'cancelled';
+    if (idx !== -1) { allOrders[idx].status = 'cancelled'; allOrders[idx].cancellation_reason = reason || null; }
   });
   renderOrders();
   renderStats();
