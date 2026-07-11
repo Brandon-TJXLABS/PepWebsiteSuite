@@ -32,17 +32,24 @@ const WEBHOOK_SECRET = Deno.env.get("WEBHOOK_SECRET")!;
 // "customer cancelled their own order" alert (see sendCancellationAlertToOwner).
 const OWNER_EMAIL = "brandon.matecko@gmail.com";
 
-// Matches styles.css :root variables, since email clients can't read the stylesheet.
+// Matches styles.css :root variables (the Golden/Natural palette, as of the
+// 2026-07-11 rebrand -- variable *names* like blueDeep/gold are carried over
+// from the original all-blue palette on purpose, only the values changed,
+// same as styles.css itself). Email clients can't read the stylesheet, so
+// these are hand-kept in sync rather than shared.
 const COLOR = {
-  blueDeep: "#123C6B",
-  blueMid: "#2F6FA3",
-  bluePale: "#E3EEF5",
-  ink: "#16212B",
-  inkSoft: "#57697A",
-  line: "#D7E2E9",
-  verified: "#2E8B57",
+  bg: "#F7EFDE",
+  panel: "#FFFBF2",
+  ink: "#2B2013",
+  inkSoft: "#6B5C46",
+  blueDeep: "#1B3A5C",
+  gold: "#A8752F",
+  pale: "#F0E3C4",
+  line: "#E6D8B8",
+  verified: "#3A5F45",
   amber: "#B8860B",
 };
+const LOGO_URL = "https://acionaco.com/images/logo-mark-navy.png";
 
 const RESEARCH_USE_DISCLAIMER =
   "Research use only. Products listed on this site are sold for laboratory " +
@@ -82,7 +89,7 @@ function buildOrderEmailHtml(order: any, items: any[], emailKind: OrderEmailKind
       const imageUrl = item.products?.image_url;
       const imageCell = imageUrl
         ? `<img src="${imageUrl}" width="56" height="56" alt="" style="display:block; width:56px; height:56px; object-fit:cover; border-radius:4px; border:1px solid ${COLOR.line};">`
-        : `<div style="width:56px; height:56px; border-radius:4px; background:${COLOR.bluePale}; border:1px solid ${COLOR.line};"></div>`;
+        : `<div style="width:56px; height:56px; border-radius:4px; background:${COLOR.pale}; border:1px solid ${COLOR.line};"></div>`;
 
       return `
         <tr>
@@ -103,7 +110,7 @@ function buildOrderEmailHtml(order: any, items: any[], emailKind: OrderEmailKind
       ? `
       <tr>
         <td colspan="3" style="padding:14px 0 0;">
-          <table role="presentation" width="100%" style="background:${COLOR.bluePale}; border-radius:4px;">
+          <table role="presentation" width="100%" style="background:${COLOR.pale}; border-radius:4px;">
             <tr><td style="padding:12px 16px; font-family:Arial,Helvetica,sans-serif; font-size:13.5px; color:${COLOR.blueDeep};">
               <strong>Tracking number:</strong> ${order.tracking_number}
             </td></tr>
@@ -117,7 +124,7 @@ function buildOrderEmailHtml(order: any, items: any[], emailKind: OrderEmailKind
       ? `
       <tr>
         <td colspan="3" style="padding:14px 0 0;">
-          <table role="presentation" width="100%" style="background:${COLOR.bluePale}; border-radius:4px;">
+          <table role="presentation" width="100%" style="background:${COLOR.pale}; border-radius:4px;">
             <tr><td style="padding:12px 16px; font-family:Arial,Helvetica,sans-serif; font-size:13.5px; color:${COLOR.blueDeep};">
               <strong>Reason:</strong> ${escapeHtml(order.cancellation_reason)}
             </td></tr>
@@ -132,18 +139,26 @@ function buildOrderEmailHtml(order: any, items: any[], emailKind: OrderEmailKind
       : "";
 
   return `
-  <div style="background:#F8FAFB; padding:32px 12px; font-family:Arial,Helvetica,sans-serif;">
-    <table role="presentation" width="100%" style="max-width:560px; margin:0 auto; background:#FFFFFF; border:1px solid ${COLOR.line}; border-radius:6px; overflow:hidden;">
+  <div style="background:${COLOR.bg}; padding:32px 12px; font-family:Arial,Helvetica,sans-serif;">
+    <table role="presentation" width="100%" style="max-width:560px; margin:0 auto; background:${COLOR.panel}; border:1px solid ${COLOR.line}; border-radius:8px; overflow:hidden;">
 
       <tr>
-        <td style="background:${COLOR.blueDeep}; padding:22px 28px;">
-          <span style="font-family:Arial,Helvetica,sans-serif; font-size:20px; font-weight:bold; color:#ffffff; letter-spacing:.02em;">ACIONA</span>
+        <td style="padding:26px 28px 20px; border-bottom:1px solid ${COLOR.line};">
+          <table role="presentation"><tr>
+            <td valign="middle" style="padding-right:10px;">
+              <img src="${LOGO_URL}" width="30" height="30" alt="Aciona" style="display:block; width:30px; height:30px;">
+            </td>
+            <td valign="middle">
+              <div style="font-family:Arial,Helvetica,sans-serif; font-size:18px; font-weight:bold; color:${COLOR.blueDeep}; letter-spacing:.03em;">ACIONA</div>
+              <div style="font-family:Arial,Helvetica,sans-serif; font-size:10px; color:${COLOR.gold}; letter-spacing:.02em; margin-top:1px;">Pure by design. Powered by purpose.</div>
+            </td>
+          </tr></table>
         </td>
       </tr>
 
       <tr>
         <td style="padding:30px 28px 8px;">
-          <div style="font-family:Arial,Helvetica,sans-serif; font-size:11.5px; font-weight:bold; letter-spacing:.08em; text-transform:uppercase; color:${COLOR.blueMid};">${eyebrow}</div>
+          <div style="font-family:Arial,Helvetica,sans-serif; font-size:11.5px; font-weight:bold; letter-spacing:.08em; text-transform:uppercase; color:${COLOR.gold};">${eyebrow}</div>
           <div style="font-family:Arial,Helvetica,sans-serif; font-size:21px; font-weight:bold; color:${COLOR.blueDeep}; margin-top:6px;">${heading}</div>
         </td>
       </tr>
@@ -183,7 +198,7 @@ function buildOrderEmailHtml(order: any, items: any[], emailKind: OrderEmailKind
             ${RESEARCH_USE_DISCLAIMER}
           </p>
           <p style="font-family:Arial,Helvetica,sans-serif; font-size:11.5px; color:${COLOR.inkSoft}; margin:0;">
-            Aciona · <a href="https://acionaco.com" style="color:${COLOR.blueMid};">acionaco.com</a>
+            Aciona · <a href="https://acionaco.com" style="color:${COLOR.gold};">acionaco.com</a>
           </p>
         </td>
       </tr>
@@ -281,13 +296,38 @@ async function sendCancellationAlertToOwner(oldOrder: any): Promise<Response> {
     : "(customer profile not found)";
 
   const html = `
-    <div style="font-family:Arial,sans-serif; max-width:520px;">
-      <h2>Customer cancelled an order — Aciona</h2>
-      <p><strong>Order:</strong> #${displayNumber}</p>
-      <p><strong>Customer:</strong> ${escapeHtml(customerLine)}</p>
-      <p><strong>Order total:</strong> ${money(oldOrder.total_cents ?? 0)}</p>
-      <p><strong>Placed:</strong> ${oldOrder.created_at ? new Date(oldOrder.created_at).toLocaleString("en-AU") : "unknown"}</p>
-      <p style="color:#57697A; font-size:12.5px;">This order was still unpaid and the customer cancelled it themselves via their account — no reason is captured for self-service cancellations.</p>
+    <div style="background:${COLOR.bg}; padding:32px 12px; font-family:Arial,Helvetica,sans-serif;">
+      <table role="presentation" width="100%" style="max-width:520px; margin:0 auto; background:${COLOR.panel}; border:1px solid ${COLOR.line}; border-radius:8px; overflow:hidden;">
+        <tr>
+          <td style="padding:20px 26px 16px; border-bottom:1px solid ${COLOR.line};">
+            <table role="presentation"><tr>
+              <td valign="middle" style="padding-right:8px;"><img src="${LOGO_URL}" width="22" height="22" alt="Aciona" style="display:block; width:22px; height:22px;"></td>
+              <td valign="middle"><span style="font-size:15px; font-weight:bold; color:${COLOR.blueDeep}; letter-spacing:.03em;">ACIONA</span></td>
+            </tr></table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 26px 6px;">
+            <div style="font-size:11px; font-weight:bold; letter-spacing:.06em; text-transform:uppercase; color:${COLOR.gold};">Owner alert</div>
+            <div style="font-size:17px; font-weight:bold; color:${COLOR.blueDeep}; margin-top:6px;">A customer cancelled their own order</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:14px 26px 4px;">
+            <table role="presentation" width="100%" style="border-collapse:collapse; font-size:13.5px;">
+              <tr><td style="padding:6px 0; color:${COLOR.inkSoft};">Order</td><td style="padding:6px 0; color:${COLOR.ink}; text-align:right;">#${displayNumber}</td></tr>
+              <tr><td style="padding:6px 0; color:${COLOR.inkSoft};">Customer</td><td style="padding:6px 0; color:${COLOR.ink}; text-align:right;">${escapeHtml(customerLine)}</td></tr>
+              <tr><td style="padding:6px 0; color:${COLOR.inkSoft};">Order total</td><td style="padding:6px 0; color:${COLOR.ink}; text-align:right;">${money(oldOrder.total_cents ?? 0)}</td></tr>
+              <tr><td style="padding:6px 0; color:${COLOR.inkSoft};">Placed</td><td style="padding:6px 0; color:${COLOR.ink}; text-align:right;">${oldOrder.created_at ? new Date(oldOrder.created_at).toLocaleString("en-AU") : "unknown"}</td></tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 26px 24px;">
+            <p style="color:${COLOR.inkSoft}; font-size:12px; line-height:1.6; margin:0;">This order was still unpaid and the customer cancelled it themselves via their account — no reason is captured for self-service cancellations.</p>
+          </td>
+        </tr>
+      </table>
     </div>`;
 
   const resendResp = await fetch("https://api.resend.com/emails", {
