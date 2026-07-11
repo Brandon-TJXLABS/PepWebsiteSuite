@@ -10,7 +10,7 @@
   overlay.id = 'age-gate-overlay';
   overlay.innerHTML =
     '<div class="age-gate-panel">' +
-      '<div class="brand" style="justify-content:center; margin-bottom:18px;"><span class="brand-mark"></span> Aciona</div>' +
+      '<div class="brand" style="justify-content:center; margin-bottom:18px;"><svg width="22" height="22" viewBox="0 0 100 100" fill="none" aria-hidden="true"><path d="M17,66 A35,35 0 1 1 83,66" style="stroke:var(--blue-deep);" stroke-width="6.5" stroke-linecap="round" fill="none"/><polygon points="50,16 26,71 74,71" style="fill:var(--blue-deep);"/><circle cx="50" cy="80.5" r="5.5" style="fill:var(--blue-deep);"/></svg> Aciona</div>' +
       '<h2>Age &amp; Research Use Verification</h2>' +
       '<p>Before entering, please confirm the following:</p>' +
       '<label class="age-gate-check">' +

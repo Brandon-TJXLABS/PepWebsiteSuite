@@ -63,7 +63,19 @@ function acionaRenderPaymentInstructions(order, paymentSettings) {
     <div class="payment-instructions active">
       <strong>Pay via PayID</strong>
       <p style="color:var(--ink-soft); margin:8px 0 0;">Open your banking app, choose PayID, and pay to the identifier below using the exact amount and reference.</p>
-      <div class="mono-block">
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer; color:var(--blue-mid); font-size:.85rem;">Click to view step-by-step instructions</summary>
+        <ol style="color:var(--ink-soft); font-size:.85rem; margin:10px 0 0; padding-left:20px; line-height:1.8;">
+          <li>Open your banking app.</li>
+          <li>Tap "Pay" or "Pay someone".</li>
+          <li>Select PayID as the payment method.</li>
+          <li>Enter our PayID shown below.</li>
+          <li>Enter the exact amount shown, including cents.</li>
+          <li>Enter the reference shown below.</li>
+          <li>Submit the payment.</li>
+        </ol>
+      </details>
+      <div class="mono-block" style="margin-top:10px;">
         ${acionaCopyRow('PayID', paymentSettings.payid)}
         ${acionaCopyRow('Reference', ref)}
         ${acionaCopyRow('Amount', amount)}
@@ -72,7 +84,18 @@ function acionaRenderPaymentInstructions(order, paymentSettings) {
 
     <div class="payment-instructions active" style="margin-top:16px;">
       <strong>Or pay via bank transfer</strong>
-      <div class="mono-block">
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer; color:var(--blue-mid); font-size:.85rem;">Click to view step-by-step instructions</summary>
+        <ol style="color:var(--ink-soft); font-size:.85rem; margin:10px 0 0; padding-left:20px; line-height:1.8;">
+          <li>Open your banking app or online banking.</li>
+          <li>Choose "Pay someone" / "New payment" / "Transfer".</li>
+          <li>Enter the BSB and account number shown below.</li>
+          <li>Enter the exact amount shown, including cents.</li>
+          <li>Enter the reference shown below.</li>
+          <li>Submit the payment.</li>
+        </ol>
+      </details>
+      <div class="mono-block" style="margin-top:10px;">
         ${acionaCopyRow('Account name', paymentSettings.bank_account_name)}
         ${acionaCopyRow('BSB', paymentSettings.bank_bsb)}
         ${acionaCopyRow('Account number', paymentSettings.bank_account_number)}
@@ -82,7 +105,10 @@ function acionaRenderPaymentInstructions(order, paymentSettings) {
     </div>
 
     <p style="font-size:.8rem; color:var(--ink-soft); margin-top:12px;">
-      Please pay the exact amount shown (including cents) and use the reference above so we can match your payment automatically. Total includes GST: ${gst}.
+      Please pay the exact amount shown (including cents) and use the reference above so we can match your payment automatically — you can also add your name in the payment description for extra clarity. Total includes GST: ${gst}.
+    </p>
+    <p style="font-size:.78rem; color:var(--ink-soft); margin-top:6px;">
+      Your bank may hold the first payment to a new payee for up to 24 hours — this is normal and outside our control.
     </p>
   `;
 }

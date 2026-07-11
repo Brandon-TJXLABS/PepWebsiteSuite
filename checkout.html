@@ -10,7 +10,7 @@
 
 <header class="site">
   <nav class="nav">
-    <a href="/" class="brand"><span class="brand-mark"></span> Aciona</a>
+    <a href="/" class="brand"><svg width="22" height="22" viewBox="0 0 100 100" fill="none" aria-hidden="true"><path d="M17,66 A35,35 0 1 1 83,66" style="stroke:var(--blue-deep);" stroke-width="6.5" stroke-linecap="round" fill="none"/><polygon points="50,16 26,71 74,71" style="fill:var(--blue-deep);"/><circle cx="50" cy="80.5" r="5.5" style="fill:var(--blue-deep);"/></svg> Aciona</a>
     <button class="nav-toggle" onclick="acionaToggleNav()" aria-label="Menu">☰</button>
     <ul class="navlinks" id="nav-links">
       <li><a href="shop">Shop</a></li>
@@ -81,12 +81,14 @@
         <strong>Bank transfer instructions</strong>
         <p style="color:var(--ink-soft); margin:8px 0 0;">Transfer the total to the account below, using your order number as the reference.</p>
         <div class="mono-block" id="bank-transfer-details">Loading…</div>
+        <p style="font-size:.78rem; color:var(--ink-soft); margin-top:8px;">Your bank may hold the first payment to a new payee for up to 24 hours — this is normal and outside our control.</p>
       </div>
 
       <div class="payment-instructions" id="instructions-payid">
         <strong>PayID instructions</strong>
         <p style="color:var(--ink-soft); margin:8px 0 0;">Send payment via PayID to the identifier below, using your order number as reference.</p>
         <div class="mono-block" id="payid-details">Loading…</div>
+        <p style="font-size:.78rem; color:var(--ink-soft); margin-top:8px;">Your bank may hold the first payment to a new payee for up to 24 hours — this is normal and outside our control.</p>
       </div>
 
       <button class="btn btn-primary" id="place-order-btn" style="margin-top:24px;" disabled>Place order</button>
@@ -98,7 +100,10 @@
         <span id="confirmation-detail">Follow the payment instructions below to complete your order — we'll update your order status once payment is received, check <a href="account">your account</a> for updates.</span>
       </div>
       <div id="confirmation-payment-instructions"></div>
-      <button class="btn btn-outline" id="cancel-confirmed-order-btn" style="display:none; margin-top:8px; color:#B3261E; border-color:#B3261E;">Cancel order</button>
+      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+        <a href="shop" class="btn btn-primary">Done</a>
+        <button class="btn btn-outline" id="cancel-confirmed-order-btn" style="display:none; color:#B3261E; border-color:#B3261E;">Cancel order</button>
+      </div>
     </div>
 
   </div>

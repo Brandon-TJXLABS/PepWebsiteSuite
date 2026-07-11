@@ -3,15 +3,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root{
-  --bg: #F8FAFB;
-  --panel: #FFFFFF;
-  --ink: #16212B;
-  --ink-soft: #57697A;
-  --blue-deep: #123C6B;
-  --blue-mid: #2F6FA3;
-  --blue-pale: #E3EEF5;
-  --line: #D7E2E9;
-  --verified: #2E8B57;
+  --bg: #F7EFDE;
+  --panel: #FFFBF2;
+  --ink: #2B2013;
+  --ink-soft: #6B5C46;
+  --blue-deep: #1B3A5C;
+  --blue-mid: #A8752F;
+  --blue-pale: #F0E3C4;
+  --line: #E6D8B8;
+  --verified: #3A5F45;
   --radius: 2px;
   --max: 1280px;
 }
@@ -46,7 +46,7 @@ a:focus-visible, button:focus-visible{outline:2px solid var(--blue-mid); outline
 /* ---------- Header ---------- */
 header.site{
   position:sticky; top:0; z-index:50;
-  background:rgba(248,250,251,0.92);
+  background:rgba(247,239,222,0.92);
   backdrop-filter:blur(6px);
   border-bottom:1px solid var(--line);
 }
@@ -62,20 +62,6 @@ header.site{
 }
 a.brand{text-decoration:none;}
 a.brand:hover{text-decoration:none; opacity:.85;}
-.brand-mark{
-  width:22px; height:22px;
-  border:2px solid var(--blue-deep);
-  border-radius:3px 3px 8px 8px;
-  position:relative;
-  flex-shrink:0;
-}
-.brand-mark::after{
-  content:'';
-  position:absolute; left:2px; right:2px; bottom:2px;
-  height:40%;
-  background:var(--blue-mid);
-  border-radius:0 0 5px 5px;
-}
 .navlinks{display:flex; gap:32px; list-style:none; margin:0; padding:0;}
 .navlinks a{
   color:var(--ink-soft); font-weight:500; font-size:.95rem;
@@ -121,14 +107,14 @@ a.brand:hover{text-decoration:none; opacity:.85;}
   background-repeat:no-repeat;
 }
 .hero-content-card{
-  background:rgba(255,255,255,.5);
+  background:rgba(255,251,242,.6);
   backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
   border:1px solid var(--line);
   border-radius:6px;
   padding:28px 32px;
   max-width:520px;
-  box-shadow:0 8px 24px rgba(10,20,35,.18);
+  box-shadow:0 8px 24px rgba(30,20,10,.18);
 }
 .hero-content-card .eyebrow{color:var(--blue-deep); font-weight:700;}
 .hero-content-card .lede{color:var(--ink); font-weight:500;}
@@ -208,7 +194,7 @@ section.alt{background:var(--panel); border-top:1px solid var(--line); border-bo
   font-family:'IBM Plex Mono', monospace; font-size:.68rem; font-weight:600;
   letter-spacing:.03em; text-transform:uppercase;
   padding:4px 10px; margin-top:.5em; border-radius:12px;
-  background:rgba(46,139,87,.12); color:var(--verified);
+  background:rgba(58,95,69,.12); color:var(--verified);
 }
 .stock-pill::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor;}
 
