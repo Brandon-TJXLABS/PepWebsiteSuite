@@ -55,7 +55,7 @@ function acionaRenderPaymentInstructions(order, paymentSettings) {
     </div>
 
     <div class="payment-instructions active">
-      <strong>Pay via PayID</strong>
+      <strong>Pay via PayID&reg;</strong>
       <p style="color:var(--ink-soft); margin:8px 0 0;">Open your banking app, choose PayID, and pay to the identifier below using the exact amount and reference.</p>
       <details style="margin-top:10px;">
         <summary style="cursor:pointer; color:var(--blue-mid); font-size:.85rem;">Click to view step-by-step instructions</summary>
