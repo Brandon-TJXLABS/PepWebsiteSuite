@@ -70,8 +70,8 @@ function acionaApplyFiltersAndSort() {
   }
 
   filtered = [...filtered].sort((a, b) => {
-    if (sortBy === 'price-asc') return a.price_cents - b.price_cents;
-    if (sortBy === 'price-desc') return b.price_cents - a.price_cents;
+    if (sortBy === 'price-asc') return acionaEffectivePriceCents(a) - acionaEffectivePriceCents(b);
+    if (sortBy === 'price-desc') return acionaEffectivePriceCents(b) - acionaEffectivePriceCents(a);
     if (sortBy === 'purity') return (b.purity || '').localeCompare(a.purity || '');
     return a.name.localeCompare(b.name);
   });
@@ -108,7 +108,7 @@ function acionaProductCardHtml(p, opts) {
       <div class="desc">${p.description || ''}</div>
       <div class="metrics">
         <div class="purity">${p.purity || '—'}<span>Purity</span></div>
-        <div class="purity">${formatPrice(p.price_cents)}<span>Price</span></div>
+        <div class="purity">${acionaPriceHtml(p, { suffix: ' AUD' })}<span>Price</span></div>
       </div>
       ${outOfStock
         ? `<div class="notify-row">
@@ -238,7 +238,7 @@ function acionaOpenModal(productId) {
 
       <div class="coa-row"><span class="label">Purity (HPLC)</span><span class="value">${p.purity || '—'}</span></div>
       <div class="coa-row"><span class="label">Batch</span><span class="value">${p.batch_code || '—'}</span></div>
-      <div class="coa-row"><span class="label">Price</span><span class="value">${formatPrice(p.price_cents)}</span></div>
+      <div class="coa-row"><span class="label">Price</span><span class="value">${acionaPriceHtml(p, { suffix: ' AUD' })}</span></div>
 
       ${p.coa_url ? `<a href="${p.coa_url}" target="_blank" rel="noopener" class="coa-link" style="display:inline-block; margin-top:12px;">View Certificate of Analysis →</a>` : ''}
       ${p.wiki_url ? `<a href="${p.wiki_url}" class="coa-link" style="display:inline-block; margin-top:12px; margin-left:16px;">Research reference →</a>` : ''}
@@ -289,7 +289,7 @@ async function acionaHydrateStaticProductPage() {
 
   const { data: p, error } = await supabaseClient
     .from('products')
-    .select('active, stock_quantity, price_cents, restock_date')
+    .select('active, stock_quantity, price_cents, sale_price_cents, restock_date')
     .eq('id', productId)
     .maybeSingle();
 
@@ -301,7 +301,7 @@ async function acionaHydrateStaticProductPage() {
     return;
   }
 
-  if (priceEl && p.price_cents != null) priceEl.textContent = formatPrice(p.price_cents);
+  if (priceEl && p.price_cents != null) priceEl.innerHTML = acionaPriceHtml(p, { suffix: ' AUD' });
 
   const qty = p.stock_quantity;
   if (buyBox && qty !== null && qty !== undefined && qty <= 0) {

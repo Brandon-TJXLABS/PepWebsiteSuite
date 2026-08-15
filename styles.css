@@ -718,26 +718,19 @@ footer a:hover{color:var(--blue-deep);}
 /* ---------- Sale popup (draggable, admin-configurable) ---------- */
 .sale-popup-wrap{
   position:fixed; right:24px; bottom:24px; z-index:150;
-  max-width:320px;
+  max-width:320px; cursor:pointer;
 }
+.sale-popup-wrap:focus-visible{outline:2px solid var(--blue-mid); outline-offset:3px;}
 .sale-popup{
   background:var(--panel); border:1px solid var(--line); border-radius:8px;
   box-shadow:0 16px 40px rgba(18,30,43,.28);
   overflow:hidden;
+  transition:box-shadow .2s ease, transform .2s ease;
 }
-.sale-popup-drag{
-  background:var(--blue-deep); color:var(--bg);
-  font-family:'IBM Plex Mono', monospace; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase;
-  display:flex; align-items:center; gap:8px;
-  padding:8px 10px 8px 14px;
-  cursor:grab; touch-action:none; user-select:none;
+.sale-popup-wrap:hover .sale-popup{
+  box-shadow:0 20px 48px rgba(18,30,43,.36);
+  transform:translateY(-2px);
 }
-.sale-popup-drag-dots{color:var(--blue-mid); font-size:.9rem; letter-spacing:0;}
-.sale-popup-close{
-  margin-left:auto; background:none; border:none; color:var(--bg); opacity:.75;
-  font-size:1.15rem; line-height:1; cursor:pointer; padding:2px 6px;
-}
-.sale-popup-close:hover{opacity:1;}
 .sale-popup-body{padding:20px 20px 22px;}
 .sale-popup-pct{
   font-family:'Space Grotesk', sans-serif; font-weight:700; color:var(--blue-mid);
@@ -761,22 +754,10 @@ footer a:hover{color:var(--blue-deep);}
   font-family:'IBM Plex Mono', monospace; font-size:.8rem; color:var(--ink-soft);
   margin-bottom:14px; font-variant-numeric:tabular-nums;
 }
-.sale-popup-cta{width:100%; justify-content:center;}
-
-.sale-popup-badge{
-  display:none; align-items:center; justify-content:center;
-  width:56px; height:56px; border-radius:50%;
-  background:var(--blue-deep); color:var(--bg);
-  box-shadow:0 10px 26px rgba(18,30,43,.32);
-  cursor:pointer; user-select:none;
-}
-.sale-popup-badge span{
-  font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:.92rem;
-}
+.sale-popup-cta{width:100%; justify-content:center; pointer-events:none;}
 
 @media (max-width:520px){
   .sale-popup-wrap{left:12px; right:12px; bottom:12px; max-width:none;}
-  .sale-popup-wrap.sale-popup-dragged{max-width:320px;}
 }
 
 /* ---------- Shipping summary rows ---------- */

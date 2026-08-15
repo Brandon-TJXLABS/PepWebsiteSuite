@@ -59,10 +59,6 @@ function slugify(sku) {
   return s;
 }
 
-function formatPrice(cents) {
-  return '$' + (cents / 100).toFixed(2) + ' AUD';
-}
-
 function formatRestockDate(dateStr) {
   const date = new Date(dateStr + 'T00:00:00');
   const day = String(date.getDate()).padStart(2, '0');
@@ -161,7 +157,16 @@ function renderProductPage(p) {
   const metaDesc = rawDesc.length > 155 ? rawDesc.slice(0, 152) + '…' : rawDesc;
   const imageRel = imageUrl || FALLBACK_IMAGE_REL;
   const imageAbs = imageUrl || `${SITE_URL}/${FALLBACK_IMAGE_REL}`;
-  const priceDecimal = (p.price_cents / 100).toFixed(2);
+  // Mirrors js/cart.js's acionaEffectivePriceCents/acionaPriceHtml exactly
+  // (can't share the browser file from this Node script) -- the sale price,
+  // when set and valid, is what's actually charged (order_items trigger
+  // prefers it too), so it's also what JSON-LD's offers.price must report.
+  const onSale = p.sale_price_cents != null && p.sale_price_cents > 0 && p.sale_price_cents < p.price_cents;
+  const effectivePriceCents = onSale ? p.sale_price_cents : p.price_cents;
+  const priceDecimal = (effectivePriceCents / 100).toFixed(2);
+  const priceHtml = onSale
+    ? `<span style="text-decoration:line-through; color:var(--ink-soft); font-weight:400;">$${(p.price_cents / 100).toFixed(2)}</span> <span style="color:var(--blue-mid); font-weight:700;">$${priceDecimal} AUD</span>`
+    : `$${priceDecimal} AUD`;
   const { qty, outOfStock, lowStock } = stockStatus(p);
   const wikiSections = extractWikiSections(wikiUrl);
 
@@ -263,7 +268,7 @@ function renderProductPage(p) {
 
         <div class="coa-row"><span class="label">Purity (HPLC)</span><span class="value">${escapeHtml(purity || '—')}</span></div>
         <div class="coa-row"><span class="label">Batch</span><span class="value">${escapeHtml(batchCode || '—')}</span></div>
-        <div class="coa-row"><span class="label">Price</span><span class="value" id="product-live-price">${formatPrice(p.price_cents)}</span></div>
+        <div class="coa-row"><span class="label">Price</span><span class="value" id="product-live-price">${priceHtml}</span></div>
 
         ${coaUrl ? `<a href="${coaUrl}" target="_blank" rel="noopener" class="coa-link" style="display:inline-block; margin-top:12px;">View Certificate of Analysis →</a>` : ''}
         ${wikiUrl ? `<a href="${wikiUrl}" class="coa-link" style="display:inline-block; margin-top:12px; margin-left:16px;">Research reference →</a>` : ''}

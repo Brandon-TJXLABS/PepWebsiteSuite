@@ -183,7 +183,7 @@ async function loadOrderSummary() {
     return;
   }
 
-  currentSubtotal = currentCart.reduce((sum, item) => sum + item.products.price_cents * item.quantity, 0);
+  currentSubtotal = currentCart.reduce((sum, item) => sum + acionaEffectivePriceCents(item.products) * item.quantity, 0);
   currentVials = currentCart.reduce((sum, item) => sum + item.quantity, 0);
   currentShipping = await acionaCalculateShipping(currentVials, currentSubtotal);
 
@@ -219,7 +219,7 @@ async function loadOrderSummary() {
       return `
       <div class="coa-row">
         <span class="label">${item.products.name} × ${item.quantity}${(short || isUnavailable) ? ' ⚠' : ''}</span>
-        <span class="value">$${((item.products.price_cents * item.quantity) / 100).toFixed(2)} AUD</span>
+        <span class="value">${acionaPriceHtml(item.products, { qty: item.quantity, suffix: ' AUD' })}</span>
       </div>`;
     }).join('')}
     <div class="coa-row"><span class="label">Subtotal</span><span class="value">$${(currentSubtotal / 100).toFixed(2)} AUD</span></div>
@@ -254,7 +254,7 @@ async function createOrderItemsAndDecrementStock(orderId) {
     product_id: item.products.id,
     product_name: item.products.name,
     quantity: item.quantity,
-    price_cents: item.products.price_cents
+    price_cents: acionaEffectivePriceCents(item.products)
   }));
 
   // Stock automatically decrements via a database trigger the moment these

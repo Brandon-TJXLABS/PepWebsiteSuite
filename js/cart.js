@@ -18,6 +18,31 @@ const PLACEHOLDER_IMAGE_SVG = `data:image/svg+xml;utf8,` + encodeURIComponent(`
 const CART_QTY_CAP = 10;
 const CART_QTY_CAP_MESSAGE = 'Maximum 10 per item. Please contact us for a custom bulk invoice quote.';
 
+// Shared sale-price helpers -- loaded before products.js and used by every
+// page that shows a price (shop cards, quick-view, cart drawer, cart.html,
+// checkout.html) so a sale renders identically everywhere, and so the
+// subtotal/total actually charged always matches what's displayed. The
+// order_items BEFORE INSERT trigger (enforce_order_item_snapshot) applies
+// this same sale_price_cents-over-price_cents preference server-side, so
+// this is what the customer is really charged, not just a display trick.
+function acionaEffectivePriceCents(product) {
+  return (product.sale_price_cents != null && product.sale_price_cents > 0 && product.sale_price_cents < product.price_cents)
+    ? product.sale_price_cents
+    : product.price_cents;
+}
+
+// qty multiplies both the struck-through and the sale figure together, so a
+// line total (not just a unit price) can be passed straight through.
+function acionaPriceHtml(product, opts) {
+  const qty = (opts && opts.qty) || 1;
+  const suffix = (opts && opts.suffix) || '';
+  const onSale = product.sale_price_cents != null && product.sale_price_cents > 0 && product.sale_price_cents < product.price_cents;
+  const full = ((product.price_cents * qty) / 100).toFixed(2);
+  if (!onSale) return `$${full}${suffix}`;
+  const sale = ((product.sale_price_cents * qty) / 100).toFixed(2);
+  return `<span style="text-decoration:line-through; color:var(--ink-soft); font-weight:400;">$${full}</span> <span style="color:var(--blue-mid); font-weight:700;">$${sale}${suffix}</span>`;
+}
+
 async function acionaAddToCart(productId, quantity = 1) {
   const user = await acionaGetUser();
   if (!user) {
@@ -61,7 +86,7 @@ async function acionaGetCart() {
 
   const { data, error } = await supabaseClient
     .from('cart_items')
-    .select('id, quantity, products ( id, name, sku, purity, price_cents, batch_code, stock_quantity, active, image_url )')
+    .select('id, quantity, products ( id, name, sku, purity, price_cents, sale_price_cents, batch_code, stock_quantity, active, image_url )')
     .eq('user_id', user.id);
 
   if (error) {
@@ -180,7 +205,7 @@ async function acionaRenderCartDrawer() {
     const overStock = !unavailable && product.stock_quantity != null && item.quantity > product.stock_quantity;
 
     if (!unavailable) {
-      subtotal += product.price_cents * item.quantity;
+      subtotal += acionaEffectivePriceCents(product) * item.quantity;
       totalVials += item.quantity;
     }
 
@@ -192,7 +217,7 @@ async function acionaRenderCartDrawer() {
         <div class="drawer-item-details">
           <strong>${product.name}</strong>
           <div class="drawer-item-sku">${product.sku}</div>
-          <div class="drawer-item-price">$${(product.price_cents / 100).toFixed(2)} ea</div>
+          <div class="drawer-item-price">${acionaPriceHtml(product, { suffix: ' ea' })}</div>
           ${unavailable ? `<div class="drawer-warning">No longer available — remove to continue</div>` : ''}
           ${overStock ? `<div class="drawer-warning">Only ${product.stock_quantity} left — reduce quantity</div>` : ''}
           ${!unavailable ? `

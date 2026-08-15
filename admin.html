@@ -134,6 +134,18 @@
           <label for="np-description">Description</label>
           <textarea id="np-description" rows="2"></textarea>
         </div>
+        <div class="field" style="margin:12px 0 0;">
+          <label for="np-image">Product image URL</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="np-image" placeholder="https://…" style="flex:1;">
+            <button class="btn btn-outline admin-use-default-image" data-target="np-image" type="button" style="padding:9px 14px; font-size:.82rem; white-space:nowrap;">Use default image</button>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:12px;">
+          <div class="field" style="margin:0;"><label for="np-purity">Purity</label><input type="text" id="np-purity" placeholder="e.g. 99.4%"></div>
+          <div class="field" style="margin:0;"><label for="np-batch">Batch code</label><input type="text" id="np-batch" placeholder="e.g. AC-XXXX0000"></div>
+          <div class="field" style="margin:0;"><label for="np-wiki">Research reference page</label><input type="text" id="np-wiki" placeholder="wiki-example.html"></div>
+        </div>
         <div class="field" style="margin:12px 0 0; display:flex; align-items:center; gap:8px;">
           <label style="margin:0;"><input type="checkbox" id="np-active" checked> Active (visible on storefront immediately)</label>
         </div>
@@ -345,6 +357,9 @@ const expandedOrderIds = new Set();
 const ORDER_STATUSES = ['pending_payment', 'awaiting_shipping_quote', 'paid', 'shipped', 'cancelled'];
 const LOW_STOCK_THRESHOLD = 5; // must match js/products.js
 const STALE_UNPAID_HOURS = 48;
+// The shared placeholder photo used for every product until it has a real
+// one -- same file every existing product's image_url already points at.
+const DEFAULT_PRODUCT_IMAGE_URL = 'https://ukizfpiobuapeoyeftjp.supabase.co/storage/v1/object/public/product-images/Peptide%20Product%20Image.png';
 const ANALYTICS_WINDOW_DAYS = 30;
 
 function statusColor(status) {
@@ -861,6 +876,10 @@ function renderProducts() {
           <input type="number" step="0.01" min="0" class="admin-price" value="${(product.price_cents / 100).toFixed(2)}">
         </div>
         <div class="field" style="margin:0;">
+          <label>Sale price (AUD)</label>
+          <input type="number" step="0.01" min="0" class="admin-sale-price" placeholder="Not on sale" value="${product.sale_price_cents != null ? (product.sale_price_cents / 100).toFixed(2) : ''}">
+        </div>
+        <div class="field" style="margin:0;">
           <label>Stock quantity</label>
           <input type="number" min="0" class="admin-stock" value="${product.stock_quantity}">
         </div>
@@ -883,6 +902,20 @@ function renderProducts() {
       <div class="field" style="margin:12px 0 0;">
         <label>Description</label>
         <textarea class="admin-description" rows="3">${product.description || ''}</textarea>
+      </div>
+
+      <div class="admin-card-section-label">Catalog details</div>
+      <div class="field" style="margin:0;">
+        <label>Product image URL</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" class="admin-image-url" value="${product.image_url ? String(product.image_url).trim() : ''}" style="flex:1;">
+          <button class="btn btn-outline admin-use-default-image" data-target-class="admin-image-url" type="button" style="padding:9px 14px; font-size:.82rem; white-space:nowrap;">Use default image</button>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:12px;">
+        <div class="field" style="margin:0;"><label>Purity</label><input type="text" class="admin-purity" value="${product.purity || ''}" placeholder="e.g. 99.4%"></div>
+        <div class="field" style="margin:0;"><label>Batch code</label><input type="text" class="admin-batch-code" value="${product.batch_code || ''}" placeholder="e.g. AC-XXXX0000"></div>
+        <div class="field" style="margin:0;"><label>Research reference page</label><input type="text" class="admin-wiki-url" value="${product.wiki_url || ''}" placeholder="wiki-example.html"></div>
       </div>
 
       <div class="admin-card-section-label">Internal cost tracking</div>
@@ -918,11 +951,18 @@ function renderProducts() {
   container.querySelectorAll('.admin-save-product').forEach(btn => {
     btn.addEventListener('click', (e) => saveProduct(e.target.closest('.card')));
   });
+  container.querySelectorAll('.admin-use-default-image').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.target.closest('.card').querySelector('.' + e.target.dataset.targetClass).value = DEFAULT_PRODUCT_IMAGE_URL;
+    });
+  });
 }
 
 async function saveProduct(card) {
   const productId = card.dataset.productId;
   const price_cents = Math.round(parseFloat(card.querySelector('.admin-price').value || '0') * 100);
+  const salePriceRaw = card.querySelector('.admin-sale-price').value;
+  const sale_price_cents = salePriceRaw === '' ? null : Math.round(parseFloat(salePriceRaw) * 100);
   const stock_quantity = parseInt(card.querySelector('.admin-stock').value, 10);
   const restock_date = card.querySelector('.admin-restock-date').value || null;
   const active = card.querySelector('.admin-active').checked;
@@ -933,12 +973,23 @@ async function saveProduct(card) {
   const pack_cost_cents = Math.round(parseFloat(card.querySelector('.admin-pack-cost').value || '0') * 100);
   const pack_size = parseInt(card.querySelector('.admin-pack-size').value, 10) || 10;
   const bulk_discount_percent = parseFloat(card.querySelector('.admin-bulk-pct').value || '0');
+  const image_url = card.querySelector('.admin-image-url').value.trim() || null;
+  const purity = card.querySelector('.admin-purity').value.trim() || null;
+  const batch_code = card.querySelector('.admin-batch-code').value.trim() || null;
+  const wiki_url = card.querySelector('.admin-wiki-url').value.trim() || null;
 
   const feedback = card.querySelector('.admin-product-feedback');
 
+  if (sale_price_cents != null && sale_price_cents >= price_cents) {
+    feedback.style.display = 'inline';
+    feedback.style.color = '#B3261E';
+    feedback.textContent = 'Sale price must be lower than the regular price.';
+    return;
+  }
+
   const { error: productError } = await supabaseClient
     .from('products')
-    .update({ price_cents, stock_quantity, restock_date, active, description, featured_rank, show_research_banner })
+    .update({ price_cents, sale_price_cents, stock_quantity, restock_date, active, description, featured_rank, show_research_banner, image_url, purity, batch_code, wiki_url })
     .eq('id', productId);
 
   const { error: costError } = await supabaseClient
@@ -1280,6 +1331,9 @@ document.getElementById('inbox-requests-unhandled-only').addEventListener('chang
 document.getElementById('inbox-stock-unhandled-only').addEventListener('change', renderInbox);
 document.getElementById('customer-sort').addEventListener('change', renderCustomers);
 document.getElementById('customer-search').addEventListener('input', renderCustomers);
+document.querySelector('.admin-use-default-image[data-target]').addEventListener('click', (e) => {
+  document.getElementById(e.target.dataset.target).value = DEFAULT_PRODUCT_IMAGE_URL;
+});
 document.getElementById('add-product-btn').addEventListener('click', async () => {
   const feedback = document.querySelector('.admin-new-product-feedback');
   const sku = document.getElementById('np-sku').value.trim();
@@ -1287,6 +1341,10 @@ document.getElementById('add-product-btn').addEventListener('click', async () =>
   const price_cents = Math.round(parseFloat(document.getElementById('np-price').value || '0') * 100);
   const stock_quantity = parseInt(document.getElementById('np-stock').value, 10) || 0;
   const description = document.getElementById('np-description').value || null;
+  const image_url = document.getElementById('np-image').value.trim() || null;
+  const purity = document.getElementById('np-purity').value.trim() || null;
+  const batch_code = document.getElementById('np-batch').value.trim() || null;
+  const wiki_url = document.getElementById('np-wiki').value.trim() || null;
   const active = document.getElementById('np-active').checked;
 
   feedback.style.display = 'inline';
@@ -1296,7 +1354,7 @@ document.getElementById('add-product-btn').addEventListener('click', async () =>
     return;
   }
 
-  const { error } = await supabaseClient.from('products').insert({ sku, name, price_cents, stock_quantity, description, active });
+  const { error } = await supabaseClient.from('products').insert({ sku, name, price_cents, stock_quantity, description, active, image_url, purity, batch_code, wiki_url });
   if (error) {
     feedback.style.color = '#B3261E';
     feedback.textContent = error.code === '23505' ? 'That SKU already exists.' : 'Add failed.';

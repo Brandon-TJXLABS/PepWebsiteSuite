@@ -94,7 +94,7 @@ async function renderCart() {
     if (unavailable) hasUnavailable = true;
 
     if (!unavailable) {
-      subtotal += product.price_cents * item.quantity;
+      subtotal += acionaEffectivePriceCents(product) * item.quantity;
       totalVials += item.quantity;
     }
 
@@ -106,7 +106,7 @@ async function renderCart() {
           <div class="code mono" style="color:var(--ink-soft);">${product.sku}</div>
           ${unavailable ? '<div style="font-size:.78rem; color:#B3261E; font-weight:600;">No longer available — remove to continue</div>' : ''}
         </div>
-        <div class="mono">$${(product.price_cents / 100).toFixed(2)} ea</div>
+        <div class="mono">${acionaPriceHtml(product, { suffix: ' ea' })}</div>
         <div class="qty-controls">
           ${unavailable
             ? `<span class="mono">${item.quantity}</span>`
