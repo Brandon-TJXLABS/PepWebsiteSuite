@@ -74,29 +74,28 @@
         <div class="eyebrow">Payment method</div>
       </div>
 
-      <p style="color:var(--ink-soft); font-size:.85rem; margin:0 0 14px;">All totals are in AUD. Bank transfer is an Australian account; PayID is also AU-only.</p>
+      <p style="color:var(--ink-soft); font-size:.85rem; margin:0 0 14px;">All totals are in AUD. PayID is AU-only; crypto works from anywhere.</p>
       <div class="payment-options">
-        <label class="payment-option" data-method="bank_transfer">
-          <input type="radio" name="payment_method" value="bank_transfer">
+        <label class="payment-option" data-method="crypto">
+          <input type="radio" name="payment_method" value="crypto">
           <div>
-            <div class="title">Bank transfer (Australia)</div>
-            <div class="sub">Direct transfer to our Australian account. Orders ship once received.</div>
+            <div class="title" id="crypto-option-title">Crypto</div>
+            <div class="sub">Send crypto to the address below. Include your order reference in the transaction memo/note if your wallet supports one — it helps us match your payment faster.</div>
           </div>
         </label>
         <label class="payment-option" data-method="payid">
           <input type="radio" name="payment_method" value="payid">
           <div>
             <div class="title">PayID&reg;</div>
-            <div class="sub">Instant transfer via PayID — pay from your banking app using our PayID (ABN-linked). Fast, no international fees.</div>
+            <div class="sub">Instant transfer via PayID — pay from your banking app using our PayID. Fast, no international fees.</div>
           </div>
         </label>
       </div>
 
-      <div class="payment-instructions" id="instructions-bank_transfer">
-        <strong>Bank transfer instructions</strong>
-        <p style="color:var(--ink-soft); margin:8px 0 0;">Transfer the total to the account below, using your order number as the reference.</p>
-        <div class="mono-block" id="bank-transfer-details">Loading…</div>
-        <p style="font-size:.78rem; color:var(--ink-soft); margin-top:8px;">Your bank may hold the first payment to a new payee for up to 24 hours — this is normal and outside our control.</p>
+      <div class="payment-instructions" id="instructions-crypto">
+        <strong>Crypto payment instructions</strong>
+        <p style="color:var(--ink-soft); margin:8px 0 0;">Send the total to the address below. Payments are matched manually, so please email your transaction ID/hash to <a href="mailto:hello@acionaco.com">hello@acionaco.com</a> with your order reference after sending.</p>
+        <div class="mono-block" id="crypto-details">Loading…</div>
       </div>
 
       <div class="payment-instructions" id="instructions-payid">
@@ -399,17 +398,18 @@ async function loadPaymentSettings() {
     .select('*')
     .maybeSingle();
 
-  const bankEl = document.getElementById('bank-transfer-details');
+  const cryptoEl = document.getElementById('crypto-details');
   const payidEl = document.getElementById('payid-details');
   if (error || !data) {
-    bankEl.textContent = 'Payment details unavailable right now — please contact us.';
+    cryptoEl.textContent = 'Payment details unavailable right now — please contact us.';
     payidEl.textContent = 'Payment details unavailable right now — please contact us.';
     console.error(error);
     return;
   }
 
   currentPaymentSettingsData = data;
-  bankEl.innerHTML = `Account name: ${data.bank_account_name || '—'}<br>BSB: ${data.bank_bsb || '—'}<br>Account number: ${data.bank_account_number || '—'}`;
+  document.getElementById('crypto-option-title').textContent = data.crypto_currency ? `Crypto (${data.crypto_currency})` : 'Crypto';
+  cryptoEl.innerHTML = `Currency/network: ${data.crypto_currency || '—'}<br>Address: ${data.crypto_address || '—'}`;
   payidEl.textContent = data.payid || '—';
 }
 

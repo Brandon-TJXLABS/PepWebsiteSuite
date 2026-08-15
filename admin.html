@@ -48,7 +48,7 @@
 
     <div id="payment-config-warning" class="card" style="display:none; margin-top:24px; border-color:#B3261E; background:#fdf1f0;">
       <strong style="color:#B3261E;">⚠ Checkout is live but no payment method is configured.</strong>
-      <span style="color:var(--ink-soft);"> Customers can place orders but you have no way to receive payment. Set bank transfer details or a PayID in Checkout Settings.</span>
+      <span style="color:var(--ink-soft);"> Customers can place orders but you have no way to receive payment. Set your crypto details or a PayID in Checkout Settings.</span>
     </div>
 
     <div id="stats-row" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-top:24px;">
@@ -167,20 +167,16 @@
       <div class="admin-subhead">Payment details</div>
       <form id="payment-settings-form" class="contact-form" style="max-width:560px; margin-bottom:40px;" onsubmit="return false;">
         <div class="field">
-          <label for="ps-bank-name">Bank account name</label>
-          <input type="text" id="ps-bank-name">
-        </div>
-        <div class="field">
-          <label for="ps-bank-bsb">BSB</label>
-          <input type="text" id="ps-bank-bsb">
-        </div>
-        <div class="field">
-          <label for="ps-bank-account">Bank account number</label>
-          <input type="text" id="ps-bank-account">
-        </div>
-        <div class="field">
           <label for="ps-payid">PayID</label>
           <input type="text" id="ps-payid">
+        </div>
+        <div class="field">
+          <label for="ps-crypto-currency">Crypto currency / network</label>
+          <input type="text" id="ps-crypto-currency" placeholder="e.g. USDT (TRC20)">
+        </div>
+        <div class="field">
+          <label for="ps-crypto-address">Crypto wallet address</label>
+          <input type="text" id="ps-crypto-address">
         </div>
         <button class="btn btn-primary" id="save-payment-settings-btn" type="button">Save payment details</button>
         <span class="admin-payment-feedback" style="font-size:.85rem; display:none; margin-left:10px;"></span>
@@ -713,9 +709,9 @@ function renderStats() {
 
 function hasUsablePaymentMethod(p) {
   if (!p) return false;
-  const hasBankTransfer = !!(p.bank_account_name && p.bank_bsb && p.bank_account_number);
+  const hasCrypto = !!(p.crypto_currency && p.crypto_address);
   const hasPayid = !!p.payid;
-  return hasBankTransfer || hasPayid;
+  return hasCrypto || hasPayid;
 }
 
 function renderPaymentConfigWarning() {
@@ -1014,10 +1010,9 @@ async function loadCheckoutSettings() {
   paymentSettingsRow = payment || null;
   renderPaymentConfigWarning();
   if (payment) {
-    document.getElementById('ps-bank-name').value = payment.bank_account_name || '';
-    document.getElementById('ps-bank-bsb').value = payment.bank_bsb || '';
-    document.getElementById('ps-bank-account').value = payment.bank_account_number || '';
     document.getElementById('ps-payid').value = payment.payid || '';
+    document.getElementById('ps-crypto-currency').value = payment.crypto_currency || '';
+    document.getElementById('ps-crypto-address').value = payment.crypto_address || '';
   }
 
   const { data: shipping } = await supabaseClient.from('shipping_settings').select('*').maybeSingle();
@@ -1059,10 +1054,9 @@ function acionaToDatetimeLocalValue(iso) {
 async function savePaymentSettings() {
   const feedback = document.querySelector('.admin-payment-feedback');
   const updates = {
-    bank_account_name: document.getElementById('ps-bank-name').value || null,
-    bank_bsb: document.getElementById('ps-bank-bsb').value || null,
-    bank_account_number: document.getElementById('ps-bank-account').value || null,
     payid: document.getElementById('ps-payid').value || null,
+    crypto_currency: document.getElementById('ps-crypto-currency').value || null,
+    crypto_address: document.getElementById('ps-crypto-address').value || null,
   };
   const { error } = await supabaseClient.from('payment_settings').update(updates).eq('id', true);
   feedback.style.display = 'inline';

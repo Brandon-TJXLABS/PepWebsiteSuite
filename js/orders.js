@@ -77,22 +77,19 @@ function acionaRenderPaymentInstructions(order, paymentSettings) {
     </div>
 
     <div class="payment-instructions active" style="margin-top:16px;">
-      <strong>Or pay via bank transfer</strong>
+      <strong>Or pay via crypto${paymentSettings.crypto_currency ? ` (${paymentSettings.crypto_currency})` : ''}</strong>
       <details style="margin-top:10px;">
         <summary style="cursor:pointer; color:var(--blue-mid); font-size:.85rem;">Click to view step-by-step instructions</summary>
         <ol style="color:var(--ink-soft); font-size:.85rem; margin:10px 0 0; padding-left:20px; line-height:1.8;">
-          <li>Open your banking app or online banking.</li>
-          <li>Choose "Pay someone" / "New payment" / "Transfer".</li>
-          <li>Enter the BSB and account number shown below.</li>
-          <li>Enter the exact amount shown, including cents.</li>
-          <li>Enter the reference shown below.</li>
-          <li>Submit the payment.</li>
+          <li>Open your crypto wallet or exchange.</li>
+          <li>Send the exact amount shown, converted to ${paymentSettings.crypto_currency || 'the currency below'}, to the address below.</li>
+          <li>If your wallet supports a memo/note field, include the reference shown below.</li>
+          <li>Email your transaction ID/hash to <a href="mailto:hello@acionaco.com">hello@acionaco.com</a> along with your reference — payments are matched manually.</li>
         </ol>
       </details>
       <div class="mono-block" style="margin-top:10px;">
-        ${acionaCopyRow('Account name', paymentSettings.bank_account_name)}
-        ${acionaCopyRow('BSB', paymentSettings.bank_bsb)}
-        ${acionaCopyRow('Account number', paymentSettings.bank_account_number)}
+        ${acionaCopyRow('Currency/network', paymentSettings.crypto_currency)}
+        ${acionaCopyRow('Address', paymentSettings.crypto_address)}
         ${acionaCopyRow('Reference', ref)}
         ${acionaCopyRow('Amount', amount)}
       </div>
