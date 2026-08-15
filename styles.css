@@ -44,6 +44,45 @@ a:focus-visible, button:focus-visible{outline:2px solid var(--blue-mid); outline
 
 .wrap{max-width:var(--max); margin:0 auto; padding:0 28px;}
 
+/* ---------- Promo marquee ---------- */
+.promo-marquee{
+  background:var(--blue-deep);
+  color:var(--bg);
+  overflow:hidden;
+}
+.promo-marquee-track{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  padding:9px 0;
+  animation:promo-scroll 30s linear infinite;
+}
+.promo-marquee:hover .promo-marquee-track,
+.promo-marquee:focus-within .promo-marquee-track{
+  animation-play-state:paused;
+}
+.promo-marquee-track span{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:.8rem;
+  font-weight:500;
+  letter-spacing:.02em;
+  white-space:nowrap;
+  padding:0 1.6em;
+}
+.promo-marquee-track .promo-dot{
+  color:var(--blue-mid);
+  padding:0;
+}
+@keyframes promo-scroll{
+  from{transform:translateX(0);}
+  to{transform:translateX(-50%);}
+}
+@media (prefers-reduced-motion: reduce){
+  .promo-marquee-track{animation:none;}
+  .promo-marquee-track > :nth-child(n+9){display:none;}
+  .promo-marquee{overflow-x:auto;}
+}
+
 /* ---------- Header ---------- */
 header.site{
   position:sticky; top:0; z-index:50;
@@ -284,6 +323,108 @@ form.contact-form{display:grid; gap:18px; max-width:560px;}
 .info-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; margin-bottom:48px;}
 .info-card{background:var(--panel); border:1px solid var(--line); padding:20px;}
 .info-card .eyebrow{margin-bottom:8px;}
+
+/* ---------- The Problem (homepage trust/differentiator section) ---------- */
+.problem-section{padding:88px 0;}
+.problem-head{max-width:680px; margin:0 auto 8px; text-align:center;}
+.problem-head .eyebrow{justify-content:center;}
+
+.problem-intro{
+  display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center;
+  justify-items:center;
+  margin:40px 0 60px;
+}
+.problem-narrative{max-width:50ch; justify-self:start;}
+.problem-narrative p{color:var(--ink-soft); font-size:1.02rem; margin:0 0 1.3em;}
+.problem-narrative strong{color:var(--blue-deep);}
+.problem-narrative .btn{margin-top:8px;}
+
+/* ---- floating helix graphic ---- */
+.problem-visual{
+  position:relative; width:100%; aspect-ratio:320/360; max-width:440px; margin:0 auto;
+}
+.problem-visual::before{
+  content:''; position:absolute; inset:0%;
+  background:radial-gradient(circle at 55% 48%, var(--blue-pale) 0%, rgba(240,227,196,0) 68%);
+  animation:molecule-glow 7s ease-in-out infinite;
+}
+.problem-visual svg{position:relative; width:100%; height:100%; display:block;}
+.molecule-float{
+  animation:molecule-float 6.5s ease-in-out infinite;
+  filter:drop-shadow(0 14px 22px rgba(27,58,92,.16));
+}
+.molecule-orbit{transform-origin:160px 180px;}
+.molecule-orbit-1{animation:molecule-spin 24s linear infinite;}
+.molecule-orbit-2{animation:molecule-spin-rev 32s linear infinite;}
+.molecule-orbit-3{animation:molecule-spin 40s linear infinite;}
+.molecule-verify-ring{
+  transform-origin:center; transform-box:fill-box;
+  animation:molecule-pulse 2.8s ease-out infinite;
+}
+.molecule-scan{
+  transform-origin:center; transform-box:fill-box;
+  animation:molecule-spin 9s linear infinite;
+}
+@keyframes molecule-float{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-12px);}
+}
+@keyframes molecule-glow{
+  0%,100%{opacity:.55; transform:scale(1);}
+  50%{opacity:.92; transform:scale(1.07);}
+}
+@keyframes molecule-spin{ to{transform:rotate(360deg);} }
+@keyframes molecule-spin-rev{ to{transform:rotate(-360deg);} }
+@keyframes molecule-pulse{
+  0%{transform:scale(.8); opacity:.85;}
+  100%{transform:scale(1.9); opacity:0;}
+}
+@media (prefers-reduced-motion: reduce){
+  .problem-visual::before, .molecule-float, .molecule-orbit-1, .molecule-orbit-2,
+  .molecule-orbit-3, .molecule-verify-ring, .molecule-scan{animation:none;}
+}
+@media (max-width:900px){
+  .problem-intro{grid-template-columns:1fr; gap:36px; justify-items:center;}
+  .problem-narrative{max-width:60ch; justify-self:center; text-align:center;}
+  .problem-visual{max-width:300px;}
+}
+
+.problem-cards{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:22px;
+  margin-bottom:56px;
+}
+.problem-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:6px;
+  padding:26px 24px;
+}
+.problem-card-icon{
+  width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center;
+  border-radius:50%; background:var(--blue-pale); color:var(--blue-mid);
+  margin-bottom:16px;
+}
+.problem-card-icon svg{width:19px; height:19px;}
+.problem-card h3{font-size:1.05rem; margin-bottom:.5em;}
+.problem-card p{color:var(--ink-soft); font-size:.9rem; margin:0;}
+
+.problem-difference{
+  background:var(--blue-deep); color:var(--bg);
+  border-radius:8px; padding:40px 36px;
+  display:flex; flex-wrap:wrap; gap:28px; align-items:center; justify-content:space-between;
+}
+.problem-difference h3{color:#fff; font-size:1.3rem; margin:0; max-width:260px; flex-shrink:0;}
+.problem-difference-list{
+  display:flex; flex-wrap:wrap; gap:20px 32px; flex:1; min-width:260px;
+  list-style:none; margin:0; padding:0;
+}
+.problem-difference-list li{
+  display:flex; align-items:center; gap:9px; font-size:.92rem; font-weight:500;
+  color:rgba(247,239,222,.92);
+}
+.problem-difference-list svg{width:17px; height:17px; flex-shrink:0; color:var(--blue-mid);}
+
+@media (max-width:640px){
+  .problem-difference{flex-direction:column; align-items:flex-start; text-align:left;}
+}
 
 /* ---------- Footer ---------- */
 footer{
@@ -572,6 +713,70 @@ footer a:hover{color:var(--blue-deep);}
 .age-gate-exit{
   display:block; margin-top:14px; font-size:.82rem; color:var(--ink-soft);
   text-decoration:underline;
+}
+
+/* ---------- Sale popup (draggable, admin-configurable) ---------- */
+.sale-popup-wrap{
+  position:fixed; right:24px; bottom:24px; z-index:150;
+  max-width:320px;
+}
+.sale-popup{
+  background:var(--panel); border:1px solid var(--line); border-radius:8px;
+  box-shadow:0 16px 40px rgba(18,30,43,.28);
+  overflow:hidden;
+}
+.sale-popup-drag{
+  background:var(--blue-deep); color:var(--bg);
+  font-family:'IBM Plex Mono', monospace; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase;
+  display:flex; align-items:center; gap:8px;
+  padding:8px 10px 8px 14px;
+  cursor:grab; touch-action:none; user-select:none;
+}
+.sale-popup-drag-dots{color:var(--blue-mid); font-size:.9rem; letter-spacing:0;}
+.sale-popup-close{
+  margin-left:auto; background:none; border:none; color:var(--bg); opacity:.75;
+  font-size:1.15rem; line-height:1; cursor:pointer; padding:2px 6px;
+}
+.sale-popup-close:hover{opacity:1;}
+.sale-popup-body{padding:20px 20px 22px;}
+.sale-popup-pct{
+  font-family:'Space Grotesk', sans-serif; font-weight:700; color:var(--blue-mid);
+  font-size:2.4rem; line-height:1; margin-bottom:6px;
+}
+.sale-popup-pct span{font-size:.9rem; font-weight:600; letter-spacing:.03em; margin-left:4px;}
+.sale-popup-headline{color:var(--ink); font-weight:600; font-size:1rem; margin-bottom:12px;}
+.sale-popup-code{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:var(--blue-pale); border:1px dashed var(--blue-mid); border-radius:4px;
+  padding:8px 8px 8px 14px; margin-bottom:14px;
+}
+.sale-popup-code span{
+  font-family:'IBM Plex Mono', monospace; font-weight:600; letter-spacing:.04em; color:var(--blue-deep);
+}
+.sale-popup-code button{
+  flex-shrink:0; background:var(--panel); border:1px solid var(--blue-mid); color:var(--blue-deep);
+  font-size:.74rem; font-weight:600; padding:5px 10px; border-radius:3px; cursor:pointer;
+}
+.sale-popup-countdown{
+  font-family:'IBM Plex Mono', monospace; font-size:.8rem; color:var(--ink-soft);
+  margin-bottom:14px; font-variant-numeric:tabular-nums;
+}
+.sale-popup-cta{width:100%; justify-content:center;}
+
+.sale-popup-badge{
+  display:none; align-items:center; justify-content:center;
+  width:56px; height:56px; border-radius:50%;
+  background:var(--blue-deep); color:var(--bg);
+  box-shadow:0 10px 26px rgba(18,30,43,.32);
+  cursor:pointer; user-select:none;
+}
+.sale-popup-badge span{
+  font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:.92rem;
+}
+
+@media (max-width:520px){
+  .sale-popup-wrap{left:12px; right:12px; bottom:12px; max-width:none;}
+  .sale-popup-wrap.sale-popup-dragged{max-width:320px;}
 }
 
 /* ---------- Shipping summary rows ---------- */

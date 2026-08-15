@@ -17,6 +17,19 @@
 </head>
 <body>
 
+<div class="promo-marquee" role="region" aria-label="Store highlights">
+  <div class="promo-marquee-track">
+    <span>Free shipping on orders over AU$150</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span>Secure, unmarked packaging on every order</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span>≥99% purity, verified on every batch</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span>48-hour dispatch on all in-stock orders</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span aria-hidden="true">Free shipping on orders over AU$150</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span aria-hidden="true">Secure, unmarked packaging on every order</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span aria-hidden="true">≥99% purity, verified on every batch</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span aria-hidden="true">48-hour dispatch on all in-stock orders</span><span class="promo-dot" aria-hidden="true">•</span>
+  </div>
+</div>
+
 <header class="site">
   <nav class="nav">
     <a href="/" class="brand"><svg width="22" height="22" viewBox="0 0 100 100" fill="none" aria-hidden="true"><path d="M17,66 A35,35 0 1 1 83,66" style="stroke:var(--blue-deep);" stroke-width="6.5" stroke-linecap="round" fill="none"/><polygon points="50,16 26,71 74,71" style="fill:var(--blue-deep);"/><circle cx="50" cy="80.5" r="5.5" style="fill:var(--blue-deep);"/></svg> Aciona</a>
@@ -120,6 +133,109 @@
   </div>
 </section>
 
+<section class="problem-section">
+  <div class="wrap">
+    <div class="problem-head">
+      <div class="eyebrow">The problem</div>
+      <h2>The peptide industry has a trust problem.</h2>
+    </div>
+
+    <div class="problem-intro">
+      <div class="problem-narrative">
+        <p>Grey-market peptides look cheap on paper. In practice, that price gets you weeks of international shipping, zero documentation of what's actually in the vial, and no recourse if it turns out underdosed or mislabelled. The saving isn't worth the risk.</p>
+        <p>On the other side, plenty of local suppliers lean on the word "Australian" to justify a price that has nothing to do with what's in the vial — steep margins, thin documentation, and quality claims with no paperwork behind them.</p>
+        <p><strong>Aciona sits in neither camp.</strong> We work with established manufacturing partners, verify every batch through an independent laboratory, and price our products at what they're actually worth — not at what the market will bear.</p>
+        <a href="lab-results" class="btn btn-primary">View our CoA reports</a>
+      </div>
+      <div class="problem-visual" aria-hidden="true">
+        <svg viewBox="0 0 320 360" fill="none">
+          <defs>
+            <radialGradient id="gradNavy" cx="35%" cy="30%" r="75%">
+              <stop offset="0%" stop-color="#33587F"/>
+              <stop offset="100%" stop-color="var(--blue-deep)"/>
+            </radialGradient>
+            <radialGradient id="gradGold" cx="35%" cy="30%" r="75%">
+              <stop offset="0%" stop-color="#C89347"/>
+              <stop offset="100%" stop-color="var(--blue-mid)"/>
+            </radialGradient>
+            <linearGradient id="gradBond" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--blue-pale)"/>
+              <stop offset="100%" stop-color="var(--line)"/>
+            </linearGradient>
+          </defs>
+
+          <g class="molecule-orbit molecule-orbit-1"><circle cx="160" cy="30" r="4.5" fill="var(--blue-mid)" opacity=".7"/></g>
+          <g class="molecule-orbit molecule-orbit-2"><circle cx="20" cy="180" r="3.5" fill="var(--blue-mid)" opacity=".5"/></g>
+          <g class="molecule-orbit molecule-orbit-3"><circle cx="250" cy="255" r="3" fill="var(--blue-deep)" opacity=".45"/></g>
+
+          <g class="molecule-float">
+            <!-- coiled peptide backbone -->
+            <path d="M160,20 C160,43 222,43 222,66 C222,87 98,87 98,108 C98,129 160,129 160,150 C160,171 222,171 222,192 C222,213 98,213 98,234 C98,255 160,255 160,276 C160,297 222,297 222,318"
+                  stroke="url(#gradBond)" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+            <!-- side-chain (R-group) bonds -->
+            <path d="M222,66 L266,50" stroke="var(--line)" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M98,108 L54,92" stroke="var(--line)" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M98,234 L54,250" stroke="var(--line)" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M222,318 L266,334" stroke="var(--line)" stroke-width="2.5" stroke-linecap="round"/>
+
+            <!-- side-chain atoms -->
+            <circle cx="266" cy="50" r="5.5" fill="url(#gradGold)"/>
+            <circle cx="54" cy="92" r="5.5" fill="url(#gradGold)"/>
+            <circle cx="54" cy="250" r="5.5" fill="url(#gradGold)"/>
+            <circle cx="266" cy="334" r="5.5" fill="url(#gradGold)"/>
+
+            <!-- backbone atoms -->
+            <circle cx="160" cy="20" r="7" fill="var(--panel)" stroke="var(--blue-deep)" stroke-width="2.5"/>
+            <circle cx="222" cy="66" r="8.5" fill="url(#gradNavy)"/>
+            <circle cx="98" cy="108" r="8.5" fill="url(#gradNavy)"/>
+            <circle cx="160" cy="150" r="9" fill="url(#gradNavy)"/>
+            <circle cx="98" cy="234" r="8.5" fill="url(#gradNavy)"/>
+            <circle cx="160" cy="276" r="9" fill="url(#gradNavy)"/>
+            <circle cx="222" cy="318" r="8.5" fill="url(#gradNavy)"/>
+
+            <!-- verified-batch node -->
+            <circle class="molecule-scan" cx="222" cy="192" r="27" fill="none" stroke="var(--blue-mid)" stroke-width="1.6" stroke-dasharray="5 8" opacity=".8"/>
+            <circle class="molecule-verify-ring" cx="222" cy="192" r="17" fill="none" stroke="var(--blue-mid)" stroke-width="2"/>
+            <circle class="molecule-verify-ring" cx="222" cy="192" r="17" fill="none" stroke="var(--blue-mid)" stroke-width="2" style="animation-delay:.9s"/>
+            <circle class="molecule-verify-ring" cx="222" cy="192" r="17" fill="none" stroke="var(--blue-mid)" stroke-width="2" style="animation-delay:1.8s"/>
+            <circle cx="222" cy="192" r="17" fill="url(#gradNavy)"/>
+            <path d="M214,192.5 L220,199 L232,185" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="problem-cards">
+      <div class="problem-card">
+        <span class="problem-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.6L1.9 18a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+        <h3>Grey market risk</h3>
+        <p>Unverified imports with no published CoA, no accountability, and no guarantee the vial matches the label.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 2.2 21 10.6a2 2 0 0 1 0 2.8l-7.6 7.6a2 2 0 0 1-2.8 0L2 12.4V4a1.8 1.8 0 0 1 1.8-1.8h8.4z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg></span>
+        <h3>Industry overpricing</h3>
+        <p>A premium that reflects marketing, not quality. We price on the batch, not the brand.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="14" height="10"/><path d="M15 10h4l3 3v4h-7z"/><circle cx="6" cy="19" r="1.7"/><circle cx="17.5" cy="19" r="1.7"/></svg></span>
+        <h3>Slow, uncertain shipping</h3>
+        <p>International grey-market orders can take weeks to arrive, if they arrive at all. We hold Australian stock and dispatch in-stock orders within 48 hours.</p>
+      </div>
+    </div>
+
+    <div class="problem-difference">
+      <h3>The Aciona difference</h3>
+      <ul class="problem-difference-list">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M8 12.5l2.6 2.6L16 9.5"/></svg> Every batch independently verified</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M8 12.5l2.6 2.6L16 9.5"/></svg> CoA published before you buy</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M8 12.5l2.6 2.6L16 9.5"/></svg> Discreet, secure packaging</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M8 12.5l2.6 2.6L16 9.5"/></svg> Tracked dispatch — no exceptions</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
     <div class="footer-grid">
@@ -188,6 +304,7 @@
 <script src="js/analytics.js"></script>
 <script src="js/cart.js"></script>
 <script src="js/shipping.js"></script>
+<script src="js/sale-popup.js"></script>
 <script src="js/products.js"></script>
 <script>
 document.getElementById('newsletter-form').addEventListener('submit', async (e) => {

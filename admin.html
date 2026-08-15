@@ -11,6 +11,19 @@
 </head>
 <body>
 
+<div class="promo-marquee" role="region" aria-label="Store highlights">
+  <div class="promo-marquee-track">
+    <span>Free shipping on orders over AU$150</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span>Secure, unmarked packaging on every order</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span>≥99% purity, verified on every batch</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span>48-hour dispatch on all in-stock orders</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span aria-hidden="true">Free shipping on orders over AU$150</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span aria-hidden="true">Secure, unmarked packaging on every order</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span aria-hidden="true">≥99% purity, verified on every batch</span><span class="promo-dot" aria-hidden="true">•</span>
+    <span aria-hidden="true">48-hour dispatch on all in-stock orders</span><span class="promo-dot" aria-hidden="true">•</span>
+  </div>
+</div>
+
 <header class="site">
   <nav class="nav">
     <a href="/" class="brand"><svg width="22" height="22" viewBox="0 0 100 100" fill="none" aria-hidden="true"><path d="M17,66 A35,35 0 1 1 83,66" style="stroke:var(--blue-deep);" stroke-width="6.5" stroke-linecap="round" fill="none"/><polygon points="50,16 26,71 74,71" style="fill:var(--blue-deep);"/><circle cx="50" cy="80.5" r="5.5" style="fill:var(--blue-deep);"/></svg> Aciona</a>
@@ -180,6 +193,32 @@
         <p style="color:var(--ink-soft); font-size:.82rem; margin:12px 0 16px;">Orders above Tier 4's vial count always require a manual shipping quote.</p>
         <button class="btn btn-primary" id="save-shipping-settings-btn" type="button">Save shipping rates</button>
         <span class="admin-shipping-feedback" style="font-size:.85rem; display:none; margin-left:10px;"></span>
+      </form>
+
+      <div class="admin-subhead">Sale popup</div>
+      <p style="color:var(--ink-soft); font-size:.85rem; margin:-6px 0 16px;">A draggable, closeable popup shown on every storefront page while enabled. Visitors who close it will see it again automatically if you change anything below (a new discount, a new end date, etc).</p>
+      <form id="sale-popup-settings-form" class="contact-form" style="max-width:560px;" onsubmit="return false;">
+        <div class="field" style="display:flex; align-items:center; gap:8px;">
+          <label style="margin:0;"><input type="checkbox" id="sp-enabled"> Enabled (show on the storefront)</label>
+        </div>
+        <div class="field">
+          <label for="sp-headline">Headline</label>
+          <input type="text" id="sp-headline" placeholder="e.g. Spring sale — this week only">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="field" style="margin:0;"><label for="sp-discount">Discount % (optional)</label><input type="number" min="1" max="100" id="sp-discount" placeholder="e.g. 20"></div>
+          <div class="field" style="margin:0;"><label for="sp-code">Promo code (optional)</label><input type="text" id="sp-code" placeholder="e.g. SPRING20"></div>
+        </div>
+        <div class="field">
+          <label for="sp-ends">Ends at (optional — leave blank for no countdown)</label>
+          <input type="datetime-local" id="sp-ends">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="field" style="margin:0;"><label for="sp-cta-text">Button text</label><input type="text" id="sp-cta-text" placeholder="Shop now"></div>
+          <div class="field" style="margin:0;"><label for="sp-cta-url">Button link</label><input type="text" id="sp-cta-url" placeholder="shop"></div>
+        </div>
+        <button class="btn btn-primary" id="save-sale-popup-settings-btn" type="button">Save sale popup</button>
+        <span class="admin-sale-popup-feedback" style="font-size:.85rem; display:none; margin-left:10px;"></span>
       </form>
     </div>
 
@@ -942,6 +981,28 @@ async function loadCheckoutSettings() {
     document.getElementById('ss-t4-max').value = shipping.tier4_max_vials;
     document.getElementById('ss-t4-cost').value = (shipping.tier4_cost_cents / 100).toFixed(2);
   }
+
+  const { data: salePopup } = await supabaseClient.from('sale_popup_settings').select('*').maybeSingle();
+  if (salePopup) {
+    document.getElementById('sp-enabled').checked = salePopup.enabled;
+    document.getElementById('sp-headline').value = salePopup.headline || '';
+    document.getElementById('sp-discount').value = salePopup.discount_percent || '';
+    document.getElementById('sp-code').value = salePopup.promo_code || '';
+    document.getElementById('sp-ends').value = acionaToDatetimeLocalValue(salePopup.ends_at);
+    document.getElementById('sp-cta-text').value = salePopup.cta_text || '';
+    document.getElementById('sp-cta-url').value = salePopup.cta_url || '';
+  }
+}
+
+// Converts a stored UTC ISO timestamp to the local "YYYY-MM-DDTHH:mm" value
+// a <input type="datetime-local"> expects; the reverse (new Date(value)) is
+// handled inline in saveSalePopupSettings since Date already parses that
+// format as local time.
+function acionaToDatetimeLocalValue(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 async function savePaymentSettings() {
@@ -980,6 +1041,26 @@ async function saveShippingSettings() {
   feedback.style.display = 'inline';
   feedback.style.color = error ? '#B3261E' : 'var(--verified)';
   feedback.textContent = error ? 'Save failed.' : 'Saved.';
+  if (error) console.error(error);
+}
+
+async function saveSalePopupSettings() {
+  const feedback = document.querySelector('.admin-sale-popup-feedback');
+  const endsValue = document.getElementById('sp-ends').value;
+  const updates = {
+    enabled: document.getElementById('sp-enabled').checked,
+    headline: document.getElementById('sp-headline').value || null,
+    discount_percent: document.getElementById('sp-discount').value ? parseInt(document.getElementById('sp-discount').value, 10) : null,
+    promo_code: document.getElementById('sp-code').value || null,
+    ends_at: endsValue ? new Date(endsValue).toISOString() : null,
+    cta_text: document.getElementById('sp-cta-text').value || 'Shop now',
+    cta_url: document.getElementById('sp-cta-url').value || 'shop',
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await supabaseClient.from('sale_popup_settings').update(updates).eq('id', true);
+  feedback.style.display = 'inline';
+  feedback.style.color = error ? '#B3261E' : 'var(--verified)';
+  feedback.textContent = error ? 'Save failed.' : 'Saved — visitors who dismissed the old popup will see this update.';
   if (error) console.error(error);
 }
 
@@ -1193,6 +1274,7 @@ document.getElementById('export-csv-btn').addEventListener('click', exportOrders
 document.getElementById('bulk-cancel-stale-btn').addEventListener('click', bulkCancelStaleOrders);
 document.getElementById('save-payment-settings-btn').addEventListener('click', savePaymentSettings);
 document.getElementById('save-shipping-settings-btn').addEventListener('click', saveShippingSettings);
+document.getElementById('save-sale-popup-settings-btn').addEventListener('click', saveSalePopupSettings);
 document.getElementById('inbox-contact-unhandled-only').addEventListener('change', renderInbox);
 document.getElementById('inbox-requests-unhandled-only').addEventListener('change', renderInbox);
 document.getElementById('inbox-stock-unhandled-only').addEventListener('change', renderInbox);

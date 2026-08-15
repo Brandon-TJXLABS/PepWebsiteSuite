@@ -8,7 +8,7 @@ stock, description, image, or active status in Supabase.
 1. Open a terminal (PowerShell or Git Bash both work).
 2. Go to the repo root:
    ```
-   cd D:\AcionaCo
+   cd D:\EvidenceHealth
    ```
 3. Run:
    ```
