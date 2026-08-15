@@ -225,7 +225,7 @@ function resp(body: string, status: number): Response {
   return new Response(body, { status, headers: CORS_HEADERS });
 }
 
-async function sendOrderEmail(orderId: string, emailKind: OrderEmailKind): Promise<Response> {
+async function sendOrderEmail(orderId: string, emailKind: OrderEmailKind, idempotencyKey?: string): Promise<Response> {
   const { data: orderRow, error: orderError } = await supabaseAdmin
     .from("orders")
     .select("*, order_items(*, products(image_url))")
@@ -257,6 +257,7 @@ async function sendOrderEmail(orderId: string, emailKind: OrderEmailKind): Promi
     headers: {
       Authorization: `Bearer ${RESEND_API_KEY}`,
       "Content-Type": "application/json",
+      ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },
     body: JSON.stringify({
       from: "Aciona Orders <orders@acionaco.com>",
@@ -335,6 +336,7 @@ async function sendCancellationAlertToOwner(oldOrder: any): Promise<Response> {
     headers: {
       Authorization: `Bearer ${RESEND_API_KEY}`,
       "Content-Type": "application/json",
+      "Idempotency-Key": `${oldOrder.id}-cancel-alert`,
     },
     body: JSON.stringify({
       from: "Aciona Orders <orders@acionaco.com>",
@@ -389,7 +391,10 @@ Deno.serve(async (req) => {
       return resp("forbidden", 403);
     }
 
-    return sendOrderEmail(order_id, kind);
+    // A fresh key every time -- unlike the webhook path, a manual resend is
+    // supposed to always actually send, even if it's the same order/kind as
+    // a recent webhook-triggered send (that's the whole point of the button).
+    return sendOrderEmail(order_id, kind, `${order_id}-${kind}-resend-${Date.now()}`);
   }
 
   // Database Webhook path: only trusted if it presents the shared secret set
@@ -425,5 +430,8 @@ Deno.serve(async (req) => {
   }
 
   const kind: OrderEmailKind = becameShipped ? "shipped" : becameCancelled ? "cancelled" : "confirmation";
-  return sendOrderEmail(order.id, kind);
+  // Stable per order+kind -- a manually-retried webhook delivery for the
+  // same event reuses this key, so Resend dedupes it instead of sending a
+  // second copy of the same confirmation/shipped/cancelled email.
+  return sendOrderEmail(order.id, kind, `${order.id}-${kind}`);
 });

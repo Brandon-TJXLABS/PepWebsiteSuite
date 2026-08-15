@@ -88,6 +88,7 @@ Deno.serve(async (req) => {
     headers: {
       Authorization: `Bearer ${RESEND_API_KEY}`,
       "Content-Type": "application/json",
+      "Idempotency-Key": `${msg.id}-contact-alert`,
     },
     body: JSON.stringify({
       from: "Aciona Contact Form <orders@acionaco.com>",
